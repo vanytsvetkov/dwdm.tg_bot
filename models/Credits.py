@@ -10,6 +10,7 @@ class Bot(BaseModel):
 class Credit(BaseModel):
     username: str | None = ''
     password: str | None = ''
+    url: str | None = ''
     token: str | None = None
 
 
