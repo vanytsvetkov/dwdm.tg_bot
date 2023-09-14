@@ -4,6 +4,7 @@ import os
 import sys
 import logging as log
 from interactors.Kafka import Kafka, Consumer
+from utils.Handlers import Handler
 from models.Credits import Credits
 
 
@@ -28,6 +29,9 @@ def main():
 
 
 async def _main(credits: Credits):
+    log.info('Initialize Handler')
+    handler = Handler(credits)
+
     log.info('Initialize Kafka')
     kafka = Kafka(credits)
 
@@ -38,23 +42,26 @@ async def _main(credits: Credits):
     count = kafka.consumer.get_partitions_count()
     workers = []
     for partition_id in range(count):
-        worker_task = asyncio.create_task(worker(kafka.consumer, partition_id))
+        worker_task = asyncio.create_task(worker(kafka.consumer, partition_id, handler))
         workers.append(worker_task)
 
     try:
+        await handler.start()
         await asyncio.gather(*workers)
     except asyncio.CancelledError:
         log.info('Handler cancelled, stop.')
     finally:
+        await handler.stop()
         log.info('Handler stopped.')
 
 
-async def worker(consumer: Consumer, number: int) -> None:
+async def worker(consumer: Consumer, number: int, handler: Handler) -> None:
     log.info(f'Starting consumer #{number}')
     while True:
         try:
             msg = await consumer.get_message()
-            log.info(msg)
+            log.info(f'Consumer #{number} get a new message.')
+            await handler.process(msg)
         except asyncio.CancelledError:
             log.info(f'Stopping consumer #{number}')
             await consumer.stop()
