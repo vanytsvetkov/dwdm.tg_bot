@@ -1,13 +1,22 @@
-import json
+# import json
+import redis as r
 import requests
+# from datetime import timedelta
 from models.Credits import Credits
+from models.MCP.Response import ProcessResponse
 
 
 class McpAPI:
-    def __init__(self, credits: Credits, **kwargs):
+    def __init__(self, credits: Credits, use_db=False, **kwargs):
         self.url = credits.mcp.url
         self.username = credits.mcp.username
         self.password = credits.mcp.password
+
+        self.use_db = use_db
+        if self.use_db:
+            self.redis = r.Redis(host=credits.redis.host, port=credits.redis.port, db=credits.redis.db)
+
+        self.token = None
 
         if self.url:
             self.requestsSession = requests.session()
@@ -17,19 +26,19 @@ class McpAPI:
                 'accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded'
                 }
-
         else:
             self.requestsSession = None
 
-    def request(self, method: str, endpoint: str, headers: dict = None, params: dict = None, data: dict = None, **kwargs) -> dict:
-        self.requestsSession.headers.update('Authorization', f'Bearer: {self.get_token()}')
+    def request(self, method: str, endpoint: str, headers: dict = None, params: dict = None, data: dict = None, token_free: bool = False, **kwargs) -> dict:
+        if not token_free:
+            self.requestsSession.headers.setdefault('Authorization', f'Bearer {self.get_token()}')
 
         if self.requestsSession:
-            response = self.requestsSession.request(method, f'https://{self.url}/{endpoint}', headers=headers, params=params, json=data, **kwargs)
+            response = self.requestsSession.request(method, f'https://{self.url}/{endpoint}', headers=headers, params=params, data=data, **kwargs)
             match response.status_code:
                 # 200 – OK | 201 – Created
                 case 200 | 201:
-                    return {**response.json(), 'success': response.ok, 'status_code': response.status_code}
+                    return {'response': response.json(), 'success': response.ok, 'status_code': response.status_code}
                 # 204 – No Content
                 case 204:
                     return {'message': response.text, 'success': response.ok, 'status_code': response.status_code}
@@ -39,12 +48,13 @@ class McpAPI:
             return {'errors': ['Wrong URL'], 'message': 'Please specify the correct MCP\'s url or pass one via kwargs.'}
 
     def get_token(self) -> str:
-        # TODO: to get token from redis db
-        # if not (token := redis.get('dwdm.tg_bot.mcp.token')):
-        if not (token := None):
-            token = self.gen_token()
+        if self.use_db:
+            self.token = self.redis.get('dwdm.tg_bot.mcp.token')
 
-        return token
+        if not self.token:
+            self.token = self.gen_token()
+
+        return self.token
 
     def gen_token(self) -> str:
         data = {
@@ -53,13 +63,21 @@ class McpAPI:
             'grant_type': 'password'
             }
 
-        tokens = self.request('POST', 'tron/api/v1/oauth2/tokens', data=data)
+        response = ProcessResponse(
+            self.request('POST', 'tron/api/v1/oauth2/tokens', data=data, token_free=True),
+            model='OAuth2Token'
+            ).response
 
-        print(json.dumps(tokens, indent=2))
+        self.token = response.accessToken
+        if self.use_db:
+            self.redis.set('dwdm.tg_bot.mcp.token', self.token)
+            # self.redis.expire('dwdm.tg_bot.mcp.token', timedelta(minutes=30))
+            self.redis.expire('dwdm.tg_bot.mcp.token', response.expiresIn)
 
-        token = '1234'
-        # TODO: save token to redis db to 30 min
-        # redis.set('dwdm.tg_bot.mcp.token', token)
-        # redis.expire('dwdm.tg_bot.mcp.token', timedelta(30))
+        return self.token
 
-        return token
+    def get_networkConstructs(self, params: dict = None, headers: dict = None, **kwargs):
+        return ProcessResponse(
+            self.request('GET', 'nsi/api/search/networkConstructs', params=params, headers=headers, **kwargs),
+            model='networkConstructs'
+            )
