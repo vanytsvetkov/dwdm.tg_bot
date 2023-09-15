@@ -2,6 +2,11 @@ import os
 import json
 from models.Credits import Credits
 from interactors.McpAPI import McpAPI
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
+
 
 DATA_DIR = 'data'
 CREDITS_FILENAME = 'credentials.json'
@@ -16,4 +21,6 @@ del credits_file
 
 mcp = McpAPI(credits)
 
-print(mcp)
+# token = mcp.get_token()
+
+networkConstructs = mcp.get_networkConstructs()
