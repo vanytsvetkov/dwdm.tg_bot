@@ -23,4 +23,6 @@ mcp = McpAPI(credits)
 
 # token = mcp.get_token()
 
-networkConstructs = mcp.get_networkConstructs()
+# networkConstructs = mcp.get_networkConstructs()
+
+ciena_6500 = mcp.get_Ciena6500()

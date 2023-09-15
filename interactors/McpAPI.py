@@ -1,6 +1,7 @@
 # import json
 import redis as r
 import requests
+import models.MCP
 # from datetime import timedelta
 from models.Credits import Credits
 from models.MCP.Response import ProcessResponse
@@ -17,7 +18,7 @@ class McpAPI:
             self.redis = r.Redis(host=credits.redis.host, port=credits.redis.port, db=credits.redis.db)
 
         self.token = None
-
+        self.response = None
         if self.url:
             self.requestsSession = requests.session()
             self.requestsSession.verify = kwargs.get('verify', True)
@@ -34,16 +35,16 @@ class McpAPI:
             self.requestsSession.headers.setdefault('Authorization', f'Bearer {self.get_token()}')
 
         if self.requestsSession:
-            response = self.requestsSession.request(method, f'https://{self.url}/{endpoint}', headers=headers, params=params, data=data, **kwargs)
-            match response.status_code:
+            self.response = self.requestsSession.request(method, f'https://{self.url}/{endpoint}', headers=headers, params=params, data=data, **kwargs)
+            match self.response.status_code:
                 # 200 – OK | 201 – Created
                 case 200 | 201:
-                    return {'response': response.json(), 'success': response.ok, 'status_code': response.status_code}
+                    return {'response': self.response.json(), 'success': self.response.ok, 'status_code': self.response.status_code}
                 # 204 – No Content
                 case 204:
-                    return {'message': response.text, 'success': response.ok, 'status_code': response.status_code}
+                    return {'message': self.response.text, 'success': self.response.ok, 'status_code': self.response.status_code}
                 case _:
-                    return {'errors': ['API Error'], 'message': response.text, 'success': response.ok, 'status_code': response.status_code}
+                    return {'errors': ['API Error'], 'message': self.response.text, 'success': self.response.ok, 'status_code': self.response.status_code}
         else:
             return {'errors': ['Wrong URL'], 'message': 'Please specify the correct MCP\'s url or pass one via kwargs.'}
 
@@ -76,8 +77,15 @@ class McpAPI:
 
         return self.token
 
-    def get_networkConstructs(self, params: dict = None, headers: dict = None, **kwargs):
+    def get_networkConstructs(self, params: dict = None, **kwargs) -> models.MCP.networkConstructs:
         return ProcessResponse(
-            self.request('GET', 'nsi/api/search/networkConstructs', params=params, headers=headers, **kwargs),
+            self.request('GET', 'nsi/api/search/networkConstructs', params=params, **kwargs),
             model='networkConstructs'
             )
+
+    def get_Ciena6500(self) -> models.MCP.networkConstructs:
+        params = {
+            'resourceType': '6500',
+            'limit': '10',
+        }
+        return self.get_networkConstructs(params=params)
