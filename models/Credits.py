@@ -15,7 +15,7 @@ class Credit(BaseModel):
 
 
 class Kafka(BaseModel):
-    bootstrap_servers: str
+    bootstrap_servers: str = 'localhost'
     topic: str
     handler: str
 
@@ -24,8 +24,15 @@ class Kafka(BaseModel):
         return f'{self.topic}:{self.handler}'
 
 
+class Redis(BaseModel):
+    host: str = 'localhost'
+    port: int = 6379
+    db: int = 0
+
+
 class Credits(BaseModel):
     tg: dict[str, Bot]
     d42: Credit
     mcp: Credit
     kafka: Kafka
+    redis: Redis = Redis()
