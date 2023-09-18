@@ -21,7 +21,7 @@ if __name__ == "__main__":
         for device in get.response.data:
             for shelf in device.attributes.memberShelvesData:
                 shelfName = f'{device.attributes.displayData.displayName}:SHELF-{shelf.shelfNumber}'
-                print(shelfName, shelf.shelfIP)
+
                 redis.set(f'dwdm.tg_bot.mcp.devices.{shelf.shelfIP}.displayName', shelfName)
                 redis.expire(f'dwdm.tg_bot.mcp.devices.{shelf.shelfIP}.displayName', timedelta(days=7))
 
@@ -35,7 +35,6 @@ if __name__ == "__main__":
 
     if not (get := mcp.get_CienaWS()).errors:
         for device in get.response.data:
-            print(device.attributes.displayData.displayName, device.attributes.ipAddress)
 
             redis.set(f'dwdm.tg_bot.mcp.devices.{device.attributes.ipAddress}.displayName', device.attributes.displayData.displayName)
             redis.expire(f'dwdm.tg_bot.mcp.devices.{device.attributes.ipAddress}.displayName', timedelta(days=7))
@@ -45,3 +44,5 @@ if __name__ == "__main__":
 
             redis.set(f'dwdm.tg_bot.mcp.devices.{device.attributes.ipAddress}.resourceType', device.attributes.resourceType)
             redis.expire(f'dwdm.tg_bot.mcp.devices.{device.attributes.ipAddress}.resourceType', timedelta(days=7))
+
+    redis.close()

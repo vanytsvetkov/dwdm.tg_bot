@@ -33,8 +33,8 @@ async def _main(credits: Credits):
         await asyncio.gather(*workers)
     except asyncio.CancelledError:
         log.info('Handler cancelled, stop.')
-    finally:
         await handler.stop()
+    finally:
         log.info('Handler stopped.')
 
 
@@ -58,5 +58,3 @@ async def worker(consumer: Consumer, number: int, handler: Handler) -> None:
 if __name__ == "__main__":
     log.basicConfig(level=log.INFO)
     main()
-
-

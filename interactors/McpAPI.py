@@ -1,5 +1,6 @@
 import redis as r
 import requests
+from datetime import timedelta
 from models.Credits import Credits
 from models.MCP.Response import ResponseType, ProcessResponse
 
@@ -72,10 +73,12 @@ class McpAPI:
             model='OAuth2Token'
             ).response
 
+        print(response)
+
         self.token = response.accessToken
         if self.use_db:
             self.redis.set('dwdm.tg_bot.mcp.token', self.token)
-            self.redis.expire('dwdm.tg_bot.mcp.token', response.expiresIn)
+            self.redis.expire('dwdm.tg_bot.mcp.token', timedelta(minutes=30))
 
         return self.token
 
@@ -88,13 +91,13 @@ class McpAPI:
     def get_Ciena6500(self) -> ResponseType:
         params = {
             'typeGroup': 'Ciena6500',
-            'limit': '10',
+            'limit': '1000',
             }
         return self.get_networkConstructs(params=params)
 
     def get_CienaWS(self) -> ResponseType:
         params = {
             'typeGroup': 'CienaWaveserver',
-            'limit': '10',
+            'limit': '1000',
             }
         return self.get_networkConstructs(params=params)
