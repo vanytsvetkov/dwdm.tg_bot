@@ -1,21 +1,24 @@
-# import json
 import redis as r
 import requests
-import models.MCP
-# from datetime import timedelta
 from models.Credits import Credits
-from models.MCP.Response import ProcessResponse
+from models.MCP.Response import ResponseType, ProcessResponse
 
 
 class McpAPI:
-    def __init__(self, credits: Credits, use_db=False, **kwargs):
+    def __init__(self, credits: Credits, use_db=True, **kwargs):
         self.url = credits.mcp.url
         self.username = credits.mcp.username
         self.password = credits.mcp.password
 
         self.use_db = use_db
         if self.use_db:
-            self.redis = r.Redis(host=credits.redis.host, port=credits.redis.port, db=credits.redis.db)
+            self.redis = r.Redis(
+                host=credits.redis.host,
+                port=credits.redis.port,
+                db=credits.redis.db,
+                decode_responses=True,
+                charset='utf-8'
+                )
 
         self.token = None
         self.response = None
@@ -72,20 +75,26 @@ class McpAPI:
         self.token = response.accessToken
         if self.use_db:
             self.redis.set('dwdm.tg_bot.mcp.token', self.token)
-            # self.redis.expire('dwdm.tg_bot.mcp.token', timedelta(minutes=30))
             self.redis.expire('dwdm.tg_bot.mcp.token', response.expiresIn)
 
         return self.token
 
-    def get_networkConstructs(self, params: dict = None, **kwargs) -> models.MCP.networkConstructs:
+    def get_networkConstructs(self, params: dict = None, **kwargs) -> ResponseType:
         return ProcessResponse(
             self.request('GET', 'nsi/api/search/networkConstructs', params=params, **kwargs),
             model='networkConstructs'
             )
 
-    def get_Ciena6500(self) -> models.MCP.networkConstructs:
+    def get_Ciena6500(self) -> ResponseType:
         params = {
-            'resourceType': '6500',
+            'typeGroup': 'Ciena6500',
             'limit': '10',
-        }
+            }
+        return self.get_networkConstructs(params=params)
+
+    def get_CienaWS(self) -> ResponseType:
+        params = {
+            'typeGroup': 'CienaWaveserver',
+            'limit': '10',
+            }
         return self.get_networkConstructs(params=params)

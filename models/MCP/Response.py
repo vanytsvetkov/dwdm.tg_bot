@@ -1,15 +1,21 @@
+from typing import Union
+
 from pydantic import BaseModel
 import models.MCP
 
 
-def ProcessResponse(response: dict, model: str):
+class ResponseType(BaseModel):
+    response: Union[*models.MCP.__all__, dict]
+    success: bool
+    status_code: int
+    message: str = ''
+    errors: list = []
+
+
+def ProcessResponse(response: dict, model: str) -> ResponseType:
     model_cls = getattr(models.MCP, model, dict)
 
-    class Response(BaseModel):
-        response: model_cls = {}
-        success: bool
-        status_code: int
-        message: str = ''
-        errors: list = []
+    class Response(ResponseType):
+        response: model_cls = dict()
 
     return Response.model_validate(response)
