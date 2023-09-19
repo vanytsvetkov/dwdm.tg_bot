@@ -7,7 +7,7 @@ class Bot(BaseModel):
     groups: dict[str, int]
 
 
-class Credit(BaseModel):
+class Cred(BaseModel):
     username: str | None = ''
     password: str | None = ''
     url: str | None = ''
@@ -30,9 +30,14 @@ class Redis(BaseModel):
     db: int = 0
 
 
-class Credits(BaseModel):
+class GTable(BaseModel):
+    sheet_id: str
+
+
+class Creds(BaseModel):
     tg: dict[str, Bot]
-    d42: Credit
-    mcp: Credit
+    d42: Cred
+    mcp: Cred
     kafka: Kafka
     redis: Redis = Redis()
+    gtable: GTable

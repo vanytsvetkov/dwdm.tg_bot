@@ -1,4 +1,4 @@
-from utils.utils import load_credits
+from utils.utils import load_creds
 
-credits = load_credits()
+credits = load_creds()
 

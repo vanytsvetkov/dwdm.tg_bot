@@ -13,7 +13,7 @@ response = {
         "sessionType": "User",
         "time": "2023-09-15T12:23:28.245471Z",
         "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-      },
+        },
       "expiresIn": 2592000,
       "accessToken": "f60e6f7dc0fa5d9d5ee4",
       "tokenType": "bearer",
@@ -23,7 +23,7 @@ response = {
       "isSuccessful": True,
       "userTenantUuid": "-1",
       "radiusState": ""
-    },
+      },
     'success': True,
     'status_code': 200
     }

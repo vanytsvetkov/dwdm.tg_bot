@@ -1,22 +1,23 @@
+import vars
 import redis as r
 import requests
 from datetime import timedelta
-from models.Credits import Credits
+from models.Creds import Creds
 from models.MCP.Response import ResponseType, ProcessResponse
 
 
 class McpAPI:
-    def __init__(self, credits: Credits, use_db=True, **kwargs):
-        self.url = credits.mcp.url
-        self.username = credits.mcp.username
-        self.password = credits.mcp.password
+    def __init__(self, creds: Creds, use_db=True, **kwargs):
+        self.url = creds.mcp.url
+        self.username = creds.mcp.username
+        self.password = creds.mcp.password
 
         self.use_db = use_db
         if self.use_db:
             self.redis = r.Redis(
-                host=credits.redis.host,
-                port=credits.redis.port,
-                db=credits.redis.db,
+                host=creds.redis.host,
+                port=creds.redis.port,
+                db=creds.redis.db,
                 decode_responses=True,
                 charset='utf-8'
                 )
@@ -35,6 +36,7 @@ class McpAPI:
             self.requestsSession = None
 
     def request(self, method: str, endpoint: str, headers: dict = None, params: dict = None, data: dict = None, token_free: bool = False, **kwargs) -> dict:
+        self.requestsSession.headers.pop('Authorization', None)
         if not token_free:
             self.requestsSession.headers.setdefault('Authorization', f'Bearer {self.get_token()}')
 
@@ -54,7 +56,7 @@ class McpAPI:
 
     def get_token(self) -> str:
         if self.use_db:
-            self.token = self.redis.get('dwdm.tg_bot.mcp.token')
+            self.token = self.redis.get(f'{vars.PROJECT_NAME}.mcp.token')
 
         if not self.token:
             self.token = self.gen_token()
@@ -68,17 +70,18 @@ class McpAPI:
             'grant_type': 'password'
             }
 
-        response = ProcessResponse(
+        post = ProcessResponse(
             self.request('POST', 'tron/api/v1/oauth2/tokens', data=data, token_free=True),
             model='OAuth2Token'
-            ).response
+            )
 
-        print(response)
+        if not post.success:
+            return str()
 
-        self.token = response.accessToken
+        self.token = post.response.accessToken
         if self.use_db:
-            self.redis.set('dwdm.tg_bot.mcp.token', self.token)
-            self.redis.expire('dwdm.tg_bot.mcp.token', timedelta(minutes=30))
+            self.redis.set(f'{vars.PROJECT_NAME}.mcp.token', self.token)
+            self.redis.expire(f'{vars.PROJECT_NAME}.mcp.token', timedelta(minutes=30))
 
         return self.token
 
@@ -101,3 +104,31 @@ class McpAPI:
             'limit': '1000',
             }
         return self.get_networkConstructs(params=params)
+
+    def get_freID(self, displayName: str, serviceClass: list = None, limit: int = 1, **kwargs) -> ResponseType:
+        if serviceClass is None:
+            serviceClass = ['Transport Client', 'Photonic']
+
+        params = {
+            'searchText': displayName,
+            'searchFields': 'data.attributes.displayData.displayName',
+            'searchType': 'match',
+            'resourceState': 'discovered',
+            'serviceClass': ', '.join(serviceClass),
+            'limit': limit
+        }
+
+        return ProcessResponse(
+            self.request('GET', 'nsi/api/search/fres', params=params, **kwargs),
+            model='fres'
+            )
+
+    def get_serviceTopology(self, id_: str, **kwargs) -> ResponseType:
+        params = {
+            'unidirectional': 'true',
+            'include': 'tpes'
+            }
+        return ProcessResponse(
+            self.request('GET', f'revell/api/v3/serviceTopology/{id_}', params=params, **kwargs),
+            model='serviceTopologies'
+            )

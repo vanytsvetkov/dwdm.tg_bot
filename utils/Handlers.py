@@ -1,11 +1,13 @@
+import vars
 import redis as r
-from models.Credits import Credits
+from models.Creds import Creds
 from models.GELFMessage import GELFMessage
 from utils.Senders import send_tg_msg
+from utils.utils import escape_html_tags
 
 
 class Handler:
-    def __init__(self, credits: Credits):
+    def __init__(self, credits: Creds):
         self.redis_credit = credits.redis
         self.redis = None
         self.bot = credits.tg['@GBL_DWDM_Monitoring_Bot']
@@ -46,8 +48,8 @@ class Handler:
         Parse msg by internal rules
         :return: None
         """
-        device = self.redis.get(f'dwdm.tg_bot.mcp.devices.{self.msg.source_}.displayName')
-        self.msg_parse = self.msg.short_message.replace('<', '&lt;').replace('>', '&gt;')
+        device = self.redis.get(f'{vars.PROJECT_NAME}.mcp.devices.{self.msg.source_}.displayName')
+        self.msg_parse = escape_html_tags(self.msg.short_message)
 
         self.msg_parse = '\n'.join(
             (
@@ -73,11 +75,11 @@ class Handler:
         self.redis.close()
 
     def _is_valid(self, text: str) -> bool:
-        is_stop = self.redis.get('dwdm.tg_bot.mgmt.is_stop')
+        is_stop = self.redis.get(f'{vars.PROJECT_NAME}.mgmt.is_stop')
         if is_stop and is_stop.isdigit() and int(is_stop) == 1:
             return False
 
-        filter_keywords = self.redis.smembers('dwdm.tg_bot.mgmt.filters')
+        filter_keywords = self.redis.smembers(f'{vars.PROJECT_NAME}.mgmt.filters')
         if not filter_keywords:
             return True
 

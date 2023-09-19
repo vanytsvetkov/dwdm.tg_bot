@@ -2,16 +2,16 @@ import asyncio
 import logging as log
 from interactors.Kafka import Kafka, Consumer
 from utils.Handlers import Handler
-from models.Credits import Credits
-from utils.utils import load_credits
+from models.Creds import Creds
+from utils.utils import load_creds
 
 
 def main():
-    credits = load_credits()
+    credits = load_creds()
     asyncio.run(_main(credits))
 
 
-async def _main(credits: Credits):
+async def _main(credits: Creds):
     log.info('Initialize Handler')
     handler = Handler(credits)
 

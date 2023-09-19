@@ -1,10 +1,10 @@
 from interactors.McpAPI import McpAPI
 import logging
-from utils.utils import load_credits
+from utils.utils import load_creds
 
 logging.basicConfig(level=logging.DEBUG)
 
-credits = load_credits()
+credits = load_creds()
 
 mcp = McpAPI(credits)
 

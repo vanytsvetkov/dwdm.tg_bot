@@ -1,6 +1,6 @@
 import json
 from aiokafka import AIOKafkaConsumer
-from models.Credits import Credits
+from models.Creds import Creds
 from models.GELFMessage import GELFMessage
 
 
@@ -39,7 +39,7 @@ class Consumer:
 
 
 class Kafka:
-    def __init__(self, credits: Credits):
+    def __init__(self, credits: Creds):
         self.topic = credits.kafka.topic
         self.bootstrap_servers = credits.kafka.bootstrap_servers
         self.group_id = credits.kafka.group_id
