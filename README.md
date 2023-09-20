@@ -1,5 +1,12 @@
 # dwdm.tg_bot
 
+### Requirements
+```shell
+python 3.11.2
+redis 6.0.16
+kafka 0.7.1
+```
+
 ### Deploy
 
 #### 0. Setup venv and install requirements
