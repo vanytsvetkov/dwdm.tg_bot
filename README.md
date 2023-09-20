@@ -1,6 +1,6 @@
 # dwdm.tg_bot
 
-### Requirements
+### Dependencies
 ```shell
 python 3.11.2
 redis 6.0.16
