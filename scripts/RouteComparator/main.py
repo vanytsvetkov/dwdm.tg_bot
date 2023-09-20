@@ -1,15 +1,16 @@
 import asyncio
+import logging as log
 import os.path
 import sys
-import pandas as pd
+
 import dataframe_image as dfi
-import logging as log
+import pandas as pd
+from requests.exceptions import RequestException
 
 import vars
 from interactors.McpAPI import McpAPI
 from utils.Senders import send_tg_msg
-from utils.utils import load_creds, get_df_from_gt
-from requests.exceptions import RequestException
+from utils.utils import get_df_from_gt, is_valid, load_creds
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPORT_DIR = f'{CURRENT_DIR}/result'
@@ -25,17 +26,13 @@ COL_WAVE_NODES = 3
 VALID_PREFIXES = ["G-", "GBL-", "RUN-", "TG-", "TG-SGP-"]
 
 
-def is_valid(name: str) -> bool:
-    return any(name.startswith(prefix) for prefix in VALID_PREFIXES)
-
-
 def colorise(line: pd.Series) -> list[str]:
     global COL_WAVE_NAME, COL_WAVE_RESILIENSE, COL_WAVE_CLIENT, COL_WAVE_NODES
     global reference_nodes, reference_resilienceLevels, reference_customers
     global probe_nodes, probe_resilienceLevels, probe_customers
 
     STYLE_SUCCESS_BG = 'background-color: #c1d08a;'
-    STYLE_SUCCESS_TC = 'color: #c1d08a;'
+    STYLE_SUCCESS_TC = 'color: #000000;'
     STYLE_FAILED_BG = 'background-color: #fcd1d6;'
     STYLE_FAILED_MISS_BG = 'background-color: #f79ca6;'
     STYLE_FAILED_TC = 'color: #dc4a68;'
@@ -109,7 +106,7 @@ if __name__ == '__main__':
 
     for _, row in dataset.iterrows():
         wave = row.iloc[COL_WAVE_NAME]
-        if is_valid(wave):
+        if is_valid(wave, VALID_PREFIXES):
             nodes = row.iloc[COL_WAVE_NODES:]
             reference_nodes.setdefault(wave, set(node for node in nodes if node))
 
