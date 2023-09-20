@@ -35,7 +35,7 @@ CRON_RULES=(
   "0 9 * * *     $BASE_DIR/scripts/RouteComparator/run.sh"
   "0 10 * * 1    $BASE_DIR/scripts/ChannelChecker/run.sh"
   "0 10 * * *    $BASE_DIR/scripts/CustomerSyncer/run.sh"
-  "0 4 * * *    $BASE_DIR/scripts/UpdateProcessor/run.sh"
+  "0 4 * * *     $BASE_DIR/scripts/UpdateProcessor/run.sh"
 )
 
 join_with_newline "${CRON_RULES[@]}" > "$BASE_DIR/scripts/cron.sh"
