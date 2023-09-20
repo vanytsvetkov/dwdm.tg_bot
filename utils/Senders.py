@@ -4,7 +4,7 @@ import telegram
 from telegram.error import NetworkError, RetryAfter, TimedOut
 
 
-async def send_tg_msg(token: str, chat_id: int, text: str = None, caption: str = '', reply_to_message_id: int = None, parse_mode: str = "HTML", data: dict = None, repeat: int = 0, **kwargs) -> int:
+async def send_tg_msg(token: str, chat_id: int, text: str = None, caption: str = '', reply_to_message_id: int = None, parse_mode: str = "HTML", data: dict = None, filename: str = None, repeat: int = 0, **kwargs) -> int:
     bot = telegram.Bot(token)
     repeatLimit = 10
 
@@ -23,6 +23,10 @@ async def send_tg_msg(token: str, chat_id: int, text: str = None, caption: str =
                     document = json.dumps(data["data"], indent=4, default=str).encode('utf-8')
 
                 message = await bot.send_document(caption=caption, chat_id=chat_id, document=document, reply_to_message_id=reply_to_message_id, filename=data["filename"], parse_mode=parse_mode)
+                return message.message_id
+
+            if filename:
+                message = await bot.send_photo(caption=caption, chat_id=chat_id, photo=open(filename, "rb"), reply_to_message_id=reply_to_message_id, parse_mode=parse_mode)
                 return message.message_id
 
         except RetryAfter as retry:
