@@ -40,3 +40,7 @@ def get_df_from_gt(sheet_id: str, sheet_names: list) -> dict[str, pd.DataFrame]:
         dataframes.append(df)
 
     return dict(zip(sheet_names, dataframes))
+
+
+def is_valid(name: str, validators: list) -> bool:
+    return any(name.startswith(prefix) for prefix in validators)
