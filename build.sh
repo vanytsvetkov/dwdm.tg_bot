@@ -39,3 +39,24 @@ CRON_RULES=(
 )
 
 join_with_newline "${CRON_RULES[@]}" > "$BASE_DIR/scripts/cron.sh"
+
+SERVICE=(
+  "[Unit]"
+  "Description=dwdm.tg_bot"
+  ""
+  "[Service]"
+  "Type=simple"
+  "User=root"
+  "WorkingDirectory=$BASE_DIR"
+  "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/main.py $BASE_DIR/bot.py"
+  "Restart=always"
+  "RestartSec=10"
+  "StandardOutput=syslog"
+  "StandardError=syslog"
+  "SyslogIdentifier=dwdm.tg_bot"
+  ""
+  "[Install]"
+  "WantedBy=multi-user.target"
+)
+
+join_with_newline "${SERVICE[@]}" > "$BASE_DIR/dwdm.tg_bot.service"
