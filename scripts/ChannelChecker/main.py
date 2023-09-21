@@ -2,8 +2,6 @@ import asyncio
 import logging as log
 import sys
 
-import pandas as pd
-
 import vars
 from interactors.McpAPI import McpAPI
 from utils.Senders import send_tg_msg
