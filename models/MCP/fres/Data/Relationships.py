@@ -10,6 +10,10 @@ class FreDiscovered(BaseModel):
     data: Data = Data()
 
 
+class Utilization(BaseModel):
+    data: Data = Data()
+
+
 class Relationship(BaseModel):
     data: list[Data] = list()
 
@@ -19,4 +23,4 @@ class Relationships(BaseModel):
     supportedByServices: Relationship = Relationship()
     endPoints: Relationship = Relationship()
     partitionFres: Relationship = Relationship()
-    utilization: Relationship = Relationship()
+    utilization: Utilization = Utilization()

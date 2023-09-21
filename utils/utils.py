@@ -1,10 +1,13 @@
-import gspread
 import json
-import sys
-import vars
-import os
-import pandas as pd
 import logging as log
+import os
+import re
+import sys
+
+import gspread
+import pandas as pd
+
+import vars
 from models.Creds import Creds
 
 
@@ -44,3 +47,14 @@ def get_df_from_gt(sheet_id: str, sheet_names: list) -> dict[str, pd.DataFrame]:
 
 def is_valid(name: str, validators: list) -> bool:
     return any(name.startswith(prefix) for prefix in validators)
+
+
+def is_ignore(line: pd.Series, index: int | None = None) -> bool:
+    return index is not None and line.get(index, False)
+
+
+def prettify(name: str) -> str:
+    # found = re.findall(r'([\w+-]+\d+).*', name)
+    # return found[0] if found else None
+    found = re.match(r'([\w+-]+\d+)', name)
+    return found.group(1) if found else None

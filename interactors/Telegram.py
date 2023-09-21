@@ -18,7 +18,7 @@ async def cmd_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 async def cmd_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/ChannelChecker/run.sh', f'{update.message.message_id}'])
+        subprocess.run([f'{vars.BASE}/scripts/ChannelChecker/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:
@@ -27,7 +27,7 @@ async def cmd_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/CustomerSyncer/run.sh', f'{update.message.message_id}'])
+        subprocess.run([f'{vars.BASE}/scripts/CustomerSyncer/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:
@@ -36,7 +36,7 @@ async def cmd_sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/UpdateProcessor/run.sh', f'{update.message.message_id}'])
+        subprocess.run([f'{vars.BASE}/scripts/UpdateProcessor/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:

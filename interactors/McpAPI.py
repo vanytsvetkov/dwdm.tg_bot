@@ -105,18 +105,24 @@ class McpAPI:
             }
         return self.get_networkConstructs(params=params)
 
-    def get_freID(self, displayName: str, serviceClass: list = None, limit: int = 1, **kwargs) -> ResponseType:
+    def get_fres(self, displayName: str = None, serviceClass: list = None, limit: int = 1, **kwargs) -> ResponseType:
         if serviceClass is None:
             serviceClass = ['Transport Client', 'Photonic']
 
         params = {
-            'searchText': displayName,
-            'searchFields': 'data.attributes.displayData.displayName',
-            'searchType': 'match',
             'resourceState': 'discovered',
             'serviceClass': ', '.join(serviceClass),
             'limit': limit
-        }
+            }
+
+        if displayName:
+            params.update(
+                {
+                    'searchText': displayName,
+                    'searchFields': 'data.attributes.displayData.displayName',
+                    'searchType': 'match',
+                    }
+                )
 
         return ProcessResponse(
             self.request('GET', 'nsi/api/search/fres', params=params, **kwargs),
