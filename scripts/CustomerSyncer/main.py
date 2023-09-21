@@ -34,7 +34,7 @@ if __name__ == '__main__':
     else:
         REPORT_RECIPIENTS = {
             *creds.tg[vars.BOT_NAME].users.values(),
-            # *creds.tg[vars.BOT_NAME].groups.values(),
+            *creds.tg[vars.BOT_NAME].groups.values(),
             }
 
     # Get reference dataset from Google Tables
