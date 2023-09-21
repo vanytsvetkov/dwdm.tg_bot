@@ -38,5 +38,5 @@ Configuration settings are required for the script to run correctly. These setti
 Execute the script using Python. Ensure that the required dependencies and configurations are correctly set up:
 
 ```shell
-$ python3 data_comparison_patching_script.py [chat_id] [msg_id]
+$ python3 main.py [chat_id] [msg_id]
 ```
