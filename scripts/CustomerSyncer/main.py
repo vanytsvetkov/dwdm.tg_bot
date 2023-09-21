@@ -19,7 +19,7 @@ REPORT_UNSUCCESSFUL_TXT = lambda x: f'Various clients were stored in the MCP and
 VALID_PREFIXES = ["G-", "GBL-", "RUN-", "TG-", "TG-SGP-"]
 
 if __name__ == '__main__':
-    log.basicConfig(level=log.DEBUG)
+    log.basicConfig(level=vars.LOG_LEVEL)
 
     creds = load_creds()
 

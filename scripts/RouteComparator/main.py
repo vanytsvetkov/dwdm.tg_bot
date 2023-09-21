@@ -66,7 +66,7 @@ def colorise(line: pd.Series) -> list[str]:
 
 
 if __name__ == '__main__':
-    log.basicConfig(level=log.DEBUG)
+    log.basicConfig(level=vars.LOG_LEVEL)
 
     os.makedirs(REPORT_DIR, exist_ok=True)
 

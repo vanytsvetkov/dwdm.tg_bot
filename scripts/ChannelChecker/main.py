@@ -18,7 +18,7 @@ REPORT_SUCCESSFUL_TXT = 'The MCP and Google Tables databases store the same chan
 VALID_PREFIXES = ["G-", "GBL-", "RUN-", "TG-", "TG-SGP-"]
 
 if __name__ == '__main__':
-    log.basicConfig(level=log.DEBUG)
+    log.basicConfig(level=vars.LOG_LEVEL)
 
     creds = load_creds()
 

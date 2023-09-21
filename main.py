@@ -1,8 +1,10 @@
 import asyncio
 import logging as log
-from interactors.Kafka import Kafka, Consumer
-from utils.Handlers import Handler
+
+import vars
+from interactors.Kafka import Consumer, Kafka
 from models.Creds import Creds
+from utils.Handlers import Handler
 from utils.utils import load_creds
 
 
@@ -56,5 +58,5 @@ async def worker(consumer: Consumer, number: int, handler: Handler) -> None:
 
 
 if __name__ == "__main__":
-    log.basicConfig(level=log.INFO)
+    log.basicConfig(level=vars.LOG_LEVEL)
     main()

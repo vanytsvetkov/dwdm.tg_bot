@@ -11,7 +11,7 @@ from utils.Senders import send_tg_msg
 from utils.utils import load_creds
 
 if __name__ == "__main__":
-    log.basicConfig(level=log.DEBUG)
+    log.basicConfig(level=vars.LOG_LEVEL)
 
     log.info('Loading credits')
     creds = load_creds()

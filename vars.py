@@ -27,5 +27,7 @@ GOOGLE_API_FILENAME = 'api-project.json'
 
 NECESSARY_FILES = [CREDITS_FILENAME, GOOGLE_API_FILENAME]
 
+LOG_LEVEL = 'INFO'
+
 # BOT_NAME = '@GBL_DWDM_Monitoring_Bot'
 BOT_NAME = '@ArborSightlineBot'
