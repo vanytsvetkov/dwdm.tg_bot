@@ -86,52 +86,64 @@ if __name__ == '__main__':
             *creds.tg[vars.BOT_NAME].groups.values(),
             }
 
-    mcp = McpAPI(creds)
-
     # Get reference dataset from Google Tables
+    try:
+        df = get_df_from_gt(sheet_id=creds.gtable.sheet_id, sheet_names=[SHEET_NAME])
 
-    df = get_df_from_gt(sheet_id=creds.gtable.sheet_id, sheet_names=[SHEET_NAME])
-
-    dataset = df[SHEET_NAME]
+        dataset = df[SHEET_NAME]
+    except Exception:
+        text = 'Failed to get dataset from Google Tables.'
+        log.critical(text)
+        if REPORT_RECIPIENT:
+            asyncio.run(send_tg_msg(text=text, chat_id=REPORT_RECIPIENT['chat_id'], reply_to_message_id=REPORT_RECIPIENT['msg_id'], token=creds.tg[vars.BOT_NAME].token))
+        raise
 
     reference_nodes = {}
     reference_resilienceLevels = {}
     reference_customers = {}
 
     # Get probes dataset from MCP
+    try:
+        mcp = McpAPI(creds)
 
-    probe_nodes = {}
-    probe_resilienceLevels = {}
-    probe_customers = {}
+        probe_nodes = {}
+        probe_resilienceLevels = {}
+        probe_customers = {}
 
-    for _, row in dataset.iterrows():
-        wave = row.iloc[COL_WAVE_NAME]
-        if is_valid(wave, VALID_PREFIXES):
-            nodes = row.iloc[COL_WAVE_NODES:]
-            reference_nodes.setdefault(wave, set(node for node in nodes if node))
+        for _, row in dataset.iterrows():
+            wave = row.iloc[COL_WAVE_NAME]
+            if is_valid(wave, VALID_PREFIXES):
+                nodes = row.iloc[COL_WAVE_NODES:]
+                reference_nodes.setdefault(wave, set(node for node in nodes if node))
 
-            resilienceLevel = row.iloc[COL_WAVE_RESILIENSE]
-            reference_resilienceLevels.setdefault(wave, resilienceLevel)
+                resilienceLevel = row.iloc[COL_WAVE_RESILIENSE]
+                reference_resilienceLevels.setdefault(wave, resilienceLevel)
 
-            customer = row.iloc[COL_WAVE_CLIENT]
-            reference_customers.setdefault(wave, customer)
+                customer = row.iloc[COL_WAVE_CLIENT]
+                reference_customers.setdefault(wave, customer)
 
-            try:
-                get = mcp.get_fres(displayName=wave, serviceClass=['Photonic'])
-            except RequestException:
-                log.critical(f'Failed to receive a response from the remote MCP server: {creds.mcp.url}')
-                raise
+                try:
+                    get = mcp.get_fres(displayName=wave, serviceClass=['Photonic'])
+                except RequestException:
+                    log.critical(f'Failed to receive a response from the remote MCP server: {creds.mcp.url}')
+                    raise
 
-            if get.success:
-                for fre in get.response.data:
-                    serviceTopology = mcp.get_serviceTopology(id_=fre.id)
-                    if serviceTopology.success:
-                        nodes = {neName for node in serviceTopology.response.included if (neName := node.attributes.locations[0].neName)}
+                if get.success:
+                    for fre in get.response.data:
+                        serviceTopology = mcp.get_serviceTopology(id_=fre.id)
+                        if serviceTopology.success:
+                            nodes = {neName for node in serviceTopology.response.included if (neName := node.attributes.locations[0].neName)}
 
-                        probe_nodes.setdefault(wave, nodes)
-                        probe_resilienceLevels.setdefault(wave, serviceTopology.response.data.attributes.resilienceLevel)
-                        probe_customers.setdefault(wave, serviceTopology.response.data.attributes.customerName)
-                    break
+                            probe_nodes.setdefault(wave, nodes)
+                            probe_resilienceLevels.setdefault(wave, serviceTopology.response.data.attributes.resilienceLevel)
+                            probe_customers.setdefault(wave, serviceTopology.response.data.attributes.customerName)
+                        break
+    except Exception:
+        text = 'Failed to get dataset from MCP.'
+        log.critical(text)
+        if REPORT_RECIPIENT:
+            asyncio.run(send_tg_msg(text=text, chat_id=REPORT_RECIPIENT['chat_id'], reply_to_message_id=REPORT_RECIPIENT['msg_id'], token=creds.tg[vars.BOT_NAME].token))
+        raise
 
     # Set table plots rules
     pd.set_option("display.max_column", None)
