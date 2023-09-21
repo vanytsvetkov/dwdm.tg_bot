@@ -31,3 +31,4 @@ LOG_LEVEL = 'INFO'
 
 # BOT_NAME = '@GBL_DWDM_Monitoring_Bot'
 BOT_NAME = '@ArborSightlineBot'
+BOT_DFT_CHAT = '@f1rs_t'

@@ -1,5 +1,6 @@
-import vars
 import redis as r
+
+import vars
 from models.Creds import Creds
 from models.GELFMessage import GELFMessage
 from utils.Senders import send_tg_msg
@@ -10,7 +11,7 @@ class Handler:
     def __init__(self, credits: Creds):
         self.redis_credit = credits.redis
         self.redis = None
-        self.bot = credits.tg['@GBL_DWDM_Monitoring_Bot']
+        self.bot = credits.tg[vars.BOT_NAME]
 
         self.msg = None
 
@@ -68,7 +69,7 @@ class Handler:
         await send_tg_msg(
             text=self.msg_parse,
             token=self.bot.token,
-            chat_id=self.bot.users['@f1rs_t']
+            chat_id=self.bot.groups[vars.BOT_DFT_CHAT]
             )
 
     def _clean(self):
