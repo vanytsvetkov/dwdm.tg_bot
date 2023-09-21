@@ -18,6 +18,8 @@ Ensure the following Python libraries and modules are installed:
 
 Additionally, make sure to have custom modules and dependencies like `interactors.McpAPI`, `utils.Senders`, `utils.utils`, and `vars` available.
 
+To convert a pandas DataFrame to a png image using the Google driver (used by default), you need to install chromium on your system.
+
 ## Configuration
 
 Key configuration variables:
