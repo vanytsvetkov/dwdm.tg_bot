@@ -1,19 +1,31 @@
-from datetime import timedelta
-import vars
-import redis as r
+import asyncio
 import logging as log
-from interactors.McpAPI import McpAPI
-from utils.utils import load_creds
+import sys
+from datetime import timedelta
 
+import redis as r
+
+import vars
+from interactors.McpAPI import McpAPI
+from utils.Senders import send_tg_msg
+from utils.utils import load_creds
 
 if __name__ == "__main__":
     log.basicConfig(level=log.DEBUG)
 
     log.info('Loading credits')
-    credits = load_creds()
+    creds = load_creds()
 
-    redis = r.Redis(host=credits.redis.host, port=credits.redis.port, db=credits.redis.db)
-    mcp = McpAPI(credits)
+    REPORT_RECIPIENT = None
+
+    if len(sys.argv) > 2:
+        REPORT_RECIPIENT = {
+            'chat_id': int(sys.argv[1]),
+            'msg_id': int(sys.argv[2])
+            }
+
+    redis = r.Redis(host=creds.redis.host, port=creds.redis.port, db=creds.redis.db)
+    mcp = McpAPI(creds)
 
     # Upload Ciena 6500 to Redis
 
@@ -46,3 +58,6 @@ if __name__ == "__main__":
             redis.expire(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.resourceType', timedelta(days=7))
 
     redis.close()
+
+    if REPORT_RECIPIENT:
+        asyncio.run(send_tg_msg(text='Update successful.', chat_id=REPORT_RECIPIENT['chat_id'], reply_to_message_id=REPORT_RECIPIENT['msg_id'], token=creds.tg[vars.BOT_NAME].token))
