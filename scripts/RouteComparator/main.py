@@ -117,7 +117,7 @@ if __name__ == '__main__':
             reference_customers.setdefault(wave, customer)
 
             try:
-                get = mcp.get_freID(displayName=wave, serviceClass=['Photonic'])
+                get = mcp.get_fres(displayName=wave, serviceClass=['Photonic'])
             except RequestException:
                 log.critical(f'Failed to receive a response from the remote MCP server: {creds.mcp.url}')
                 raise
