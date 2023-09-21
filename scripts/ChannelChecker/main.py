@@ -9,11 +9,11 @@ from utils.utils import get_df_from_gt, is_ignore, is_valid, load_creds, prettif
 
 SHEET_NAMES = ["DWDM", "Telegram AMS"]
 COL_CHANNEL_NAME = 0
-COL_NAME_IGNORE = 'Ignore'
+COL_CHANNEL_IGNORE = 'Ignore'
 SEARCH_LIMIT = 10000
 REPORT_REF_FN = 'channels_not_in_gt.txt'
 REPORT_PROBE_FN = 'channels_not_in_mcp.txt'
-REPORT_SUCCESSFUL_TXT = 'In the MCP and GTables databases, identical channels are stored.\nCongratulations!'
+REPORT_SUCCESSFUL_TXT = 'The MCP and Google Tables databases store the same channels. Congratulations!'
 
 VALID_PREFIXES = ["G-", "GBL-", "RUN-", "TG-", "TG-SGP-"]
 
@@ -36,8 +36,6 @@ if __name__ == '__main__':
             *creds.tg[vars.BOT_NAME].groups.values(),
             }
 
-    mcp = McpAPI(creds)
-
     # Get reference dataset from Google Tables
 
     try:
@@ -48,7 +46,7 @@ if __name__ == '__main__':
             dataset = df[sheet][1:]
             dataset.columns = df[sheet].iloc[0]
 
-            col_ignore = dataset.columns.get_loc(COL_NAME_IGNORE) if COL_NAME_IGNORE in dataset.columns else None
+            col_ignore = dataset.columns.get_loc(COL_CHANNEL_IGNORE) if COL_CHANNEL_IGNORE in dataset.columns else None
 
             for _, row in dataset.iterrows():
                 if not is_ignore(row, col_ignore):
@@ -65,6 +63,8 @@ if __name__ == '__main__':
     # Get probe dataset from MCP
 
     try:
+        mcp = McpAPI(creds)
+
         probe_channels = set()
 
         get = mcp.get_fres(serviceClass=['Transport Client'], limit=SEARCH_LIMIT)
