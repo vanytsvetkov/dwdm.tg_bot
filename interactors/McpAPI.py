@@ -35,13 +35,13 @@ class McpAPI:
         else:
             self.requestsSession = None
 
-    def request(self, method: str, endpoint: str, headers: dict = None, params: dict = None, data: dict = None, token_free: bool = False, **kwargs) -> dict:
+    def request(self, method: str, endpoint: str, headers: dict = None, params: dict = None, data: dict = None, json: dict = None, token_free: bool = False, **kwargs) -> dict:
         self.requestsSession.headers.pop('Authorization', None)
         if not token_free:
             self.requestsSession.headers.setdefault('Authorization', f'Bearer {self.get_token()}')
 
         if self.requestsSession:
-            self.response = self.requestsSession.request(method, f'https://{self.url}/{endpoint}', headers=headers, params=params, data=data, **kwargs)
+            self.response = self.requestsSession.request(method, f'https://{self.url}/{endpoint}', headers=headers, params=params, data=data, json=json, **kwargs)
             match self.response.status_code:
                 # 200 – OK | 201 – Created
                 case 200 | 201:
@@ -126,6 +126,28 @@ class McpAPI:
 
         return ProcessResponse(
             self.request('GET', 'nsi/api/search/fres', params=params, **kwargs),
+            model='fres'
+            )
+
+    def patch_fre(self, id_: str, customerName: str = None, **kwargs) -> ResponseType:
+        headers = {
+            'accept': 'application/json-patch+json',
+            'Content-Type': 'application/json',
+            }
+        json_data = {}
+        if customerName:
+            json_data = {
+                'operations': [
+                        {
+                            'op': 'replace',
+                            'attributes': {
+                                'customerName': customerName,
+                                },
+                            },
+                        ],
+                }
+        return ProcessResponse(
+            self.request('PATCH', f'nsi/api/fres/{id_}', headers=headers, json=json_data, **kwargs),
             model='fres'
             )
 
