@@ -16,7 +16,7 @@ generate_script() {
     local script_content=(
         "#!/bin/bash"
         ""
-        "export PYTHONPATH=$BASE_DIR:\$PYTHONPATH"
+        "export PYTHONPATH=$BASE_DIR"
         "source $BASE_DIR/venv/bin/activate &&"
         "$BASE_DIR/venv/bin/python3 $BASE_DIR/scripts/$script_name/main.py \"\$@\" > /dev/null 2>&1 &"
       )
@@ -49,7 +49,7 @@ SERVICE=(
   "Type=simple"
   "User=root"
   "WorkingDirectory=$BASE_DIR"
-  "Environment=PYTHONPATH=$BASE_DIR:\$PYTHONPATH"
+  "Environment=PYTHONPATH=$BASE_DIR"
   "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/main.py $BASE_DIR/bot.py"
   "Restart=always"
   "RestartSec=10"
