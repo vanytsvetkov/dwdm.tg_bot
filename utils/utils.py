@@ -50,7 +50,7 @@ def is_valid(name: str, validators: list) -> bool:
 
 
 def is_ignore(line: pd.Series, index: int | None = None) -> bool:
-    return index is not None and line.get(index, False)
+    return index is not None and line.iloc[index]
 
 
 def prettify(name: str) -> str:
