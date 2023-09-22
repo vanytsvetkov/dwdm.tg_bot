@@ -41,9 +41,21 @@ CRON_RULES=(
 
 join_with_newline "${CRON_RULES[@]}" > "$BASE_DIR/scripts/cron.sh"
 
+TARGET=(
+  "[Unit]"
+  "Description=dwdm.tg_bot Target"
+  ""
+  "[Install]"
+  "WantedBy=multi-user.target"
+)
+
+join_with_newline "${TARGET[@]}" > "$BASE_DIR/dwdm.tg_bot.target"
+
 SERVICE_LISTENER=(
   "[Unit]"
-  "Description=dwdm.tg_bot listener"
+  "Description=dwdm.tg_bot (Listener Instance)"
+  "Wants=dwdm_bot.target"
+  "After=dwdm_bot.target"
   ""
   "[Service]"
   "Type=simple"
@@ -62,7 +74,9 @@ join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.servi
 
 SERVICE_SENDER=(
   "[Unit]"
-  "Description=dwdm.tg_bot sender"
+  "Description=dwdm.tg_bot (Sender Instance)"
+  "Wants=dwdm_bot.target"
+  "After=dwdm_bot.target"
   ""
   "[Service]"
   "Type=simple"
