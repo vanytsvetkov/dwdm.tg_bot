@@ -81,9 +81,10 @@ class Handler:
 
     def _is_valid(self, text: str) -> bool:
         is_stop = self.redis.get(f'{vars.PROJECT_NAME}.mgmt.is_stop')
+        log.info(f'{is_stop}, {type(is_stop)}')
         if is_stop is not None and is_stop.isdigit() and int(is_stop) == 1:
             return False
 
         filter_keywords = self.redis.smembers(f'{vars.PROJECT_NAME}.mgmt.filters')
-
+        log.info(f'{filter_keywords}, {type(filter_keywords)}')
         return not any(keyword in text for keyword in filter_keywords) if filter_keywords is not None else True
