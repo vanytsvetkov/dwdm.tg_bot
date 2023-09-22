@@ -65,9 +65,6 @@ SERVICE_LISTENER=(
   "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/bot.py"
   "Restart=always"
   "RestartSec=10"
-  ""
-  "[Install]"
-  "WantedBy=multi-user.target"
 )
 
 join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.service"
@@ -86,9 +83,6 @@ SERVICE_SENDER=(
   "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/main.py"
   "Restart=always"
   "RestartSec=10"
-  ""
-  "[Install]"
-  "WantedBy=multi-user.target"
 )
 
 join_with_newline "${SERVICE_SENDER[@]}" > "$BASE_DIR/dwdm.tg_bot.send.service"
