@@ -56,7 +56,7 @@ SERVICE_LISTENER=(
   "RestartSec=10"
   ""
   "[Install]"
-  "WantedBy==multi-user.target"
+  "WantedBy=multi-user.target"
 )
 
 join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.service"
@@ -76,7 +76,7 @@ SERVICE_SENDER=(
   "RestartSec=10"
   ""
   "[Install]"
-  "WantedBy==multi-user.target"
+  "WantedBy=multi-user.target"
 )
 
 join_with_newline "${SERVICE_SENDER[@]}" > "$BASE_DIR/dwdm.tg_bot.send.service"
