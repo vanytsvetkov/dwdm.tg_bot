@@ -41,7 +41,7 @@ CRON_RULES=(
 
 join_with_newline "${CRON_RULES[@]}" > "$BASE_DIR/scripts/cron.sh"
 
-SERVICE=(
+SERVICE_LISTENER=(
   "[Unit]"
   "Description=dwdm.tg_bot"
   ""
@@ -50,7 +50,7 @@ SERVICE=(
   "User=root"
   "WorkingDirectory=$BASE_DIR"
   "Environment=PYTHONPATH=$BASE_DIR"
-  "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/main.py $BASE_DIR/bot.py"
+  "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/bot.py"
   "Restart=always"
   "RestartSec=10"
   ""
@@ -58,4 +58,23 @@ SERVICE=(
   "WantedBy=multi-user.target"
 )
 
-join_with_newline "${SERVICE[@]}" > "$BASE_DIR/dwdm.tg_bot.service"
+join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.service"
+
+SERVICE_SENDER=(
+  "[Unit]"
+  "Description=dwdm.tg_bot"
+  ""
+  "[Service]"
+  "Type=simple"
+  "User=root"
+  "WorkingDirectory=$BASE_DIR"
+  "Environment=PYTHONPATH=$BASE_DIR"
+  "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/main.py"
+  "Restart=always"
+  "RestartSec=10"
+  ""
+  "[Install]"
+  "WantedBy=multi-user.target"
+)
+
+join_with_newline "${SERVICE_SENDER[@]}" > "$BASE_DIR/dwdm.tg_bot.send.service"
