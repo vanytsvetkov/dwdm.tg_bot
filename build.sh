@@ -54,8 +54,7 @@ join_with_newline "${TARGET[@]}" > "$BASE_DIR/dwdm.tg_bot.target"
 SERVICE_LISTENER=(
   "[Unit]"
   "Description=dwdm.tg_bot (Listener Instance)"
-  "Wants=dwdm.tg_bot.target"
-  "After=dwdm.tg_bot.target"
+  "After=network.target"
   ""
   "[Service]"
   "Type=simple"
@@ -65,6 +64,9 @@ SERVICE_LISTENER=(
   "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/bot.py"
   "Restart=always"
   "RestartSec=10"
+  ""
+  "[Install]"
+  "WantedBy=dwdm.tg_bot.target"
 )
 
 join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.service"
@@ -72,8 +74,7 @@ join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.servi
 SERVICE_SENDER=(
   "[Unit]"
   "Description=dwdm.tg_bot (Sender Instance)"
-  "Wants=dwdm.tg_bot.target"
-  "After=dwdm.tg_bot.target"
+  "After=network.target"
   ""
   "[Service]"
   "Type=simple"
@@ -83,6 +84,9 @@ SERVICE_SENDER=(
   "ExecStart=$BASE_DIR/venv/bin/python3 $BASE_DIR/main.py"
   "Restart=always"
   "RestartSec=10"
+  ""
+  "[Install]"
+  "WantedBy=dwdm.tg_bot.target"
 )
 
 join_with_newline "${SERVICE_SENDER[@]}" > "$BASE_DIR/dwdm.tg_bot.send.service"
