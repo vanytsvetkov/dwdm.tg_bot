@@ -33,9 +33,10 @@ class Handler:
         :param msg: GELFMessage
         :return: None
         """
+        self.msg = msg
+
         log.info(f'Working on {self.msg.short_message}')
 
-        self.msg = msg
         log.info('Validate')
         if not self._is_valid(self.msg.full_message):
             return
