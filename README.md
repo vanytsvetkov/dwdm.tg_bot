@@ -38,14 +38,16 @@ $ vim vars.py
 
 #### 4. Running
 ```shell
-$  ln -s dwdm.tg_bot.send.service /etc/systemd/system/dwdm.tg_bot.send.service
-$  ln -s dwdm.tg_bot.listen.service /etc/systemd/system/dwdm.tg_bot.listen.service
+$ ln -s dwdm.tg_bot.send.service /etc/systemd/system/dwdm.tg_bot.send.service
+$ ln -s dwdm.tg_bot.listen.service /etc/systemd/system/dwdm.tg_bot.listen.service
 
-$  systemctl enable dwdm.tg_bot.listen.service
-$  systemctl start dwdm.tg_bot.listen.service 
+$ systemctl daemon-reload
 
-$  systemctl enable dwdm.tg_bot.send.service
-$  systemctl start dwdm.tg_bot.send.service
+$ systemctl enable dwdm.tg_bot.listen.service
+$ systemctl start dwdm.tg_bot.listen.service 
+
+$ systemctl enable dwdm.tg_bot.send.service
+$ systemctl start dwdm.tg_bot.send.service
 ```
 
 ## Scripts
