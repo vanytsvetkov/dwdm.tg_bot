@@ -29,6 +29,5 @@ NECESSARY_FILES = [CREDITS_FILENAME, GOOGLE_API_FILENAME]
 
 LOG_LEVEL = 'INFO'
 
-# BOT_NAME = '@GBL_DWDM_Monitoring_Bot'
-BOT_NAME = '@ArborSightlineBot'
-BOT_DFT_CHAT = '@f1rs_t'
+BOT_NAME = '@GBL_DWDM_Monitoring_Bot'
+BOT_DFT_CHAT = '[GBL-DWDM] Alerts'
