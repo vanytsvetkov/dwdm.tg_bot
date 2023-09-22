@@ -1,5 +1,5 @@
 import redis as r
-import logging as log
+
 import vars
 from models.Creds import Creds
 from models.GELFMessage import GELFMessage
@@ -35,17 +35,14 @@ class Handler:
         """
         self.msg = msg
 
-        log.info(f'Working on {self.msg.short_message}')
-
-        log.info('Validate')
         if not self._is_valid(self.msg.full_message):
             return
-        log.info('Parse')
+
         self._parse()
-        log.info('Validate')
+
         if not self._is_valid(self.msg_parse):
             return
-        log.info('Send')
+
         await self._send()
 
     def _parse(self) -> None:
@@ -81,10 +78,8 @@ class Handler:
 
     def _is_valid(self, text: str) -> bool:
         is_stop = self.redis.get(f'{vars.PROJECT_NAME}.mgmt.is_stop')
-        log.info(f'{is_stop}, {type(is_stop)}')
         if is_stop is not None and is_stop.isdigit() and int(is_stop) == 1:
             return False
 
         filter_keywords = self.redis.smembers(f'{vars.PROJECT_NAME}.mgmt.filters')
-        log.info(f'{filter_keywords}, {type(filter_keywords)}')
         return not any(keyword in text for keyword in filter_keywords) if filter_keywords is not None else True
