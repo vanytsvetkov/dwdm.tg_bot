@@ -43,7 +43,7 @@ join_with_newline "${CRON_RULES[@]}" > "$BASE_DIR/scripts/cron.sh"
 
 SERVICE_LISTENER=(
   "[Unit]"
-  "Description=dwdm.tg_bot"
+  "Description=dwdm.tg_bot listener"
   ""
   "[Service]"
   "Type=simple"
@@ -62,7 +62,7 @@ join_with_newline "${SERVICE_LISTENER[@]}" > "$BASE_DIR/dwdm.tg_bot.listen.servi
 
 SERVICE_SENDER=(
   "[Unit]"
-  "Description=dwdm.tg_bot"
+  "Description=dwdm.tg_bot sender"
   ""
   "[Service]"
   "Type=simple"
