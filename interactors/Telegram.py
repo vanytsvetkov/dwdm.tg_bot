@@ -9,7 +9,9 @@ from utils.utils import escape_html_tags
 
 async def cmd_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/RouteComparator/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
+        chat_id = str(update.message.chat_id) if update.message else ''
+        message_id = str(update.message.message_id) if update.message else ''
+        subprocess.run([f'{vars.BASE}/scripts/RouteComparator/run.sh', chat_id, message_id])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:
@@ -18,7 +20,9 @@ async def cmd_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 async def cmd_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/ChannelChecker/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
+        chat_id = str(update.message.chat_id) if update.message else ''
+        message_id = str(update.message.message_id) if update.message else ''
+        subprocess.run([f'{vars.BASE}/scripts/ChannelChecker/run.sh', chat_id, message_id])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:
@@ -27,7 +31,9 @@ async def cmd_check(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/CustomerSyncer/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
+        chat_id = str(update.message.chat_id) if update.message else ''
+        message_id = str(update.message.message_id) if update.message else ''
+        subprocess.run([f'{vars.BASE}/scripts/CustomerSyncer/run.sh', chat_id, message_id])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:
@@ -36,7 +42,9 @@ async def cmd_sync(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        subprocess.run([f'{vars.BASE}/scripts/UpdateProcessor/run.sh', f'{update.message.chat_id}', f'{update.message.message_id}'])
+        chat_id = str(update.message.chat_id) if update.message else ''
+        message_id = str(update.message.message_id) if update.message else ''
+        subprocess.run([f'{vars.BASE}/scripts/UpdateProcessor/run.sh', chat_id, message_id])
     except Exception as e:
         await update.message.reply_text(f'<b>An error occurred.</b>\n<i>{str(e)}</i>', parse_mode='HTML', reply_to_message_id=update.message.message_id)
     else:
@@ -44,8 +52,9 @@ async def cmd_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    output = "Sorry, I can't help you."
-    await update.message.reply_text(output, parse_mode='HTML', reply_to_message_id=update.message.message_id)
+    if update.message:
+        output = "Sorry, I can't help you."
+        await update.message.reply_text(output, parse_mode='HTML', reply_to_message_id=update.message.message_id)
 
 
 class TelegramBot:
