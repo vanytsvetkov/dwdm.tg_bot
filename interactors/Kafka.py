@@ -25,6 +25,11 @@ class Consumer:
         """Dispose consumer and delete all connections"""
         await self.consumer.stop()
 
+    async def fork(self):
+        child = Consumer(self.topic, self.bootstrap_servers, self.group_id)
+        await child.start()
+        return child
+
     async def get_message(self) -> GELFMessage:
         """Get another GELF message"""
         msg = await self.consumer.getone()

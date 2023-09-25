@@ -42,6 +42,11 @@ async def _main(credits: Creds):
 
 async def worker(consumer: Consumer, number: int, handler: Handler) -> None:
     log.info(f'Starting consumer #{number}')
+    match number:
+        case 0:
+            consumer = consumer
+        case _:
+            consumer = await consumer.fork()
     while True:
         try:
             msg = await consumer.get_message()
