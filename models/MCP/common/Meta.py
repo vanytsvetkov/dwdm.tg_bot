@@ -3,24 +3,24 @@ from pydantic import BaseModel
 
 
 class Bucket(BaseModel):
-    bucketKey: str
-    bucketValue: str
-    absoluteTotal: str
+    bucketKey: str = str()
+    bucketValue: str = str()
+    absoluteTotal: str = str()
 
 
 class Aggregation(BaseModel):
-    name: str
-    bucket: list[Bucket]
+    name: str = str()
+    bucket: list[Bucket] = list()
 
 
 class MissingReferenceIdAttributes(BaseModel):
-    additionalAttributes: dict[str, Any]
+    additionalAttributes: dict[str, Any] = dict()
 
 
 class MissingReferenceId(BaseModel):
-    type: str
-    id: str
-    attributes: MissingReferenceIdAttributes
+    type: str = str()
+    id: str = str()
+    attributes: MissingReferenceIdAttributes = MissingReferenceIdAttributes()
 
 
 class Meta(BaseModel):

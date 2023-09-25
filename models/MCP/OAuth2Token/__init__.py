@@ -3,31 +3,31 @@ from datetime import datetime
 
 
 class LoginDetail(BaseModel):
-    ipAddress: str
-    sessionId: str
-    sessionType: str
-    time: datetime
-    userAgent: str
+    ipAddress: str = str()
+    sessionId: str = str()
+    sessionType: str = str()
+    time: datetime = datetime.now()
+    userAgent: str = str()
 
 
 class OAuth2Token(BaseModel):
-    accessToken:	str
-    createdTime:	datetime
-    expirationTime:	datetime
+    accessToken:	str = str()
+    createdTime:	datetime = datetime.now()
+    expirationTime:	datetime = datetime.now()
     # Token expires in timeout seconds from created time
-    expiresIn:	int
+    expiresIn:	int = int()
 
-    failedLoginAttempts:	int
-    inactiveExpirationTime:	datetime | None
+    failedLoginAttempts:	int = int()
+    inactiveExpirationTime:	datetime | None = None
     # Deprecated. Only successfull logins are stored.
-    isSuccessful:	bool
+    isSuccessful:	bool = bool()
 
-    lastSuccessIpAddress:	str
-    lastSuccessLogin:	datetime
-    loginDetail:	LoginDetail
+    lastSuccessIpAddress:	str = str()
+    lastSuccessLogin:	datetime = datetime.now()
+    loginDetail:	LoginDetail = LoginDetail()
     # Represents the Access-Challenge State attribute
-    radiusState:	str
+    radiusState:	str = str()
 
-    tokenType:	str
-    user:	str
-    userTenantUuid:	str
+    tokenType:	str = str()
+    user:	str = str()
+    userTenantUuid:	str = str()
