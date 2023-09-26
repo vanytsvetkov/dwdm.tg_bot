@@ -22,7 +22,7 @@ if __name__ == '__main__':
     while i < len(data)-1:
         msg = data[len(data)-i]
         msg['short_message'] = msg['message']
-        msg['full_message'] = msg['full_message'].replace(' -  ', '  ').replace('\\', '')
+        # msg['full_message'] = msg['full_message'].replace(' -  ', '  ').replace('\\', '')
 
         if not any(word in msg['full_message'] for word in filters):
 

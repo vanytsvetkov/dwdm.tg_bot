@@ -110,6 +110,8 @@ def parse_log(msg: GELFMessage) -> str:
                 'DEFAULT': '<{PRIVAL}>{VERSION} {TIMESTAMP} {SOURCE} {LEVEL} {SITE}:{SHELF} {PIM}  {RESOURCE}:{SEVERITY},{CONDITION_TYPE},{SERVICE_AFFECTED},{DATE},{TIME},{LOCATION},{DIRECTION}:"{DESCRIPTION}",{PORT_MODE}:{NE_ALARM_ID},:YEAR={YEAR},MODE={MODE}'
                 }
 
+            msg.full_message = msg.full_message.replace(' -  ', '  ').replace('\\', '')
+
             match (level := get_log_level(msg.full_message)):
                 case 'SECU':
                     pattern = PATTERNS.get(level).get('COMMON')
