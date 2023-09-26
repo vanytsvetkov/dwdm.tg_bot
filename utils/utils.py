@@ -58,3 +58,20 @@ def prettify(name: str) -> str:
     # return found[0] if found else None
     found = re.match(r'([\w+-]+\d+)', name)
     return found.group(1) if found else None
+
+
+def unformat(string: str, pattern: str, i: int = 0) -> dict:
+    _pattern = re.sub(r'</?var\d*>', '', pattern)
+    regexp_pattern = re.sub(r'{(.+?)}', r'(?P<_\1>.+)', _pattern)
+    search = re.search(regexp_pattern, string)
+    if search:
+        values = list(search.groups())
+        keys = re.findall(r"{(.+?)}", _pattern)
+        _dict = dict(zip(keys, values))
+        return _dict | {'processed': bool(_dict)}
+    elif not search and re.search(r'</?var\d*>', pattern):
+          # and re.search(fr"<var{i}>|</var{i}>", pattern)):
+        new_pattern = re.sub(fr"<var{i}>.+?</var{i}>", "", pattern)
+        return unformat(string, new_pattern, i+1)
+    else:
+        return {'processed': False}

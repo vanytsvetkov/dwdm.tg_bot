@@ -4,7 +4,7 @@ import vars
 from models.Creds import Creds
 from models.GELFMessage import GELFMessage
 from utils.Senders import send_tg_msg
-from utils.utils import escape_html_tags
+from utils.Parsers import parse_log
 
 
 class Handler:
@@ -40,7 +40,7 @@ class Handler:
 
         self._parse()
 
-        if not self._is_valid(self.msg_parse):
+        if not self._is_valid(self.msg_parsed):
             return
 
         await self._send()
@@ -50,14 +50,13 @@ class Handler:
         Parse msg by internal rules
         :return: None
         """
-        device = self.redis.get(f'{vars.PROJECT_NAME}.mcp.devices.{self.msg.source_}.displayName')
-        self.msg_parse = escape_html_tags(self.msg.short_message)
+        deviceName = self.redis.get(f'{vars.PROJECT_NAME}.mcp.devices.{self.msg.source_}.displayName')
 
-        self.msg_parse = '\n'.join(
+        self.msg_parsed = '\n'.join(
             (
                 f'{self.msg.timestamp_}',
-                f'<b>{device}</b> (<code>{self.msg.source_}</code>):',
-                f'{self.msg_parse}',
+                f'<b>{deviceName}</b> (<code>{self.msg.source_}</code>):',
+                f'{parse_log(self.msg)}',
                 )
             )
 
@@ -68,7 +67,7 @@ class Handler:
         """
 
         await send_tg_msg(
-            text=self.msg_parse,
+            text=self.msg_parsed,
             token=self.bot.token,
             chat_id=self.bot.groups[vars.BOT_DFT_CHAT]
             )
