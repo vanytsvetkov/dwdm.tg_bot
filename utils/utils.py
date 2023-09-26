@@ -70,8 +70,7 @@ def unformat(string: str, pattern: str, i: int = 0) -> dict:
         _dict = dict(zip(keys, values))
         return _dict | {'processed': bool(_dict)}
     elif not search and re.search(r'</?var\d*>', pattern):
-          # and re.search(fr"<var{i}>|</var{i}>", pattern)):
-        new_pattern = re.sub(fr"<var{i}>.+?</var{i}>", "", pattern)
+        new_pattern = re.sub(fr"<var{i if i else ''}>.+?</var{i if i else ''}>", "", pattern)
         return unformat(string, new_pattern, i+1)
     else:
         return {'processed': False}

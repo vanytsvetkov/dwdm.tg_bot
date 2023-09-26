@@ -17,7 +17,7 @@ class GELFMessage(BaseModel):
     gl2_remote_port_: int = Field(int(), alias='_gl2_remote_port')
     gl2_message_id_: str = Field(str(), alias='_gl2_message_id')
     kafka_topic_: str = Field(str(), alias='_kafka_topic')
-    source_: ipaddress.IPv4Address = Field(ipaddress.IPv4Address('0.0.0.0'), alias='_source')
+    source_: str = Field(str(), alias='_source')
     message_: str = Field(str(), alias='_message')
     gl2_source_input_: str = Field(str(), alias='_gl2_source_input')
     full_message_: str = Field(str(), alias='_full_message')

@@ -56,7 +56,7 @@ class Handler:
             (
                 f'{self.msg.timestamp_}',
                 f'<b>{deviceName}</b> (<code>{self.msg.source_}</code>):',
-                f'{parse_log(self.msg)}',
+                f'{parse_log(self.msg, self.redis)}',
                 )
             )
 
