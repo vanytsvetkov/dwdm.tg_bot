@@ -31,6 +31,7 @@ class AdditionalAttributes(BaseModel):
     tpeLifeCycleOwnerType: str = str()
     shelves: str = str()
     reconcileRule: str = str()
+    userLabel: str = str()
 
 
 class Attributes(BaseModel):

@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # Upload Ciena 6500 to Redis
 
-    if not (get := mcp.get_Ciena6500()).errors:
+    if (get := mcp.get_Ciena6500()).success:
         for device in get.response.data:
             for shelf in device.attributes.memberShelvesData:
                 shelfName = f'{device.attributes.displayData.displayName}:SHELF-{shelf.shelfNumber}'
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # Upload Ciena WS to Redis
 
-    if not (get := mcp.get_CienaWS()).errors:
+    if (get := mcp.get_CienaWS()).success:
         for device in get.response.data:
 
             redis.set(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.displayName', device.attributes.displayData.displayName)
@@ -57,6 +57,31 @@ if __name__ == "__main__":
             redis.set(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.resourceType', device.attributes.resourceType)
             redis.expire(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.resourceType', timedelta(days=7))
 
+            if (tpes := mcp.get_tpes(networkConstructId=device.id)).success:
+                for tpe in tpes.response.data:
+                    if tpe.attributes.nativeName:
+                        supported_fresName = set()
+
+                        # set userLabel, if available
+                        if tpe.attributes.additionalAttributes.userLabel:
+                            supported_fresName.add(tpe.attributes.additionalAttributes.userLabel)
+
+                        # get all supported fres by tpe.relationships.clientTpes
+                        for clientTpe in tpe.relationships.clientTpes.data:
+                            if (clientFres := mcp.get_supported_fres(clientTpe.id)).success:
+                                for clientFre in clientFres.response.data:
+                                    if clientFre.attributes.userLabel:
+                                        supported_fresName.add(clientFre.attributes.userLabel)
+
+                        # get all supported fres by tpe.id
+                        # if (fres := mcp.get_supported_fres(tpe.id)).success:
+                        #     for fre in fres.response.data:
+                        #         if fre.attributes.displayData.displayName:
+                        #             supported_fresName.add(fre.attributes.userLabel)
+
+                        if supported_fresName:
+                            redis.sadd(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{tpe.attributes.nativeName}.fres', *supported_fresName)
+                            redis.expire(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{tpe.attributes.nativeName}.fres', timedelta(days=7))
     redis.close()
 
     if REPORT_RECIPIENT:

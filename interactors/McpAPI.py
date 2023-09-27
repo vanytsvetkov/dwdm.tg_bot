@@ -160,3 +160,25 @@ class McpAPI:
             self.request('GET', f'revell/api/v3/serviceTopology/{id_}', params=params, **kwargs),
             model='serviceTopologies'
             )
+
+    def get_tpes(self, networkConstructId: str = None, **kwargs) -> ResponseType:
+        params = {
+                'limit': '1000',
+            }
+        if networkConstructId:
+            params.setdefault('networkConstruct.id', networkConstructId)
+
+        return ProcessResponse(
+            self.request('GET', 'nsi/api/tpes', params=params, **kwargs),
+            model='tpes'
+            )
+
+    def get_supported_fres(self, tpeId: str = None, **kwargs) -> ResponseType:
+        params = {'limit': '1000'}
+        if tpeId:
+            params.setdefault('tpeId', tpeId)
+
+        return ProcessResponse(
+            self.request('GET', 'nsi/api/fres', params=params, **kwargs),
+            model='fres'
+            )

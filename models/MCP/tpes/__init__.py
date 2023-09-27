@@ -8,4 +8,4 @@ from models.MCP.tpes.Data import Data
 class tpes(BaseModel):
     meta: Meta = Meta()
     links: Links = Links()
-    data: Data = Data()
+    data: Data | list[Data] = Data()

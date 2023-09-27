@@ -112,26 +112,28 @@ def gen_message_shelf(log: models.Logs.LogCiena6500) -> str:
     return message
 
 
-def gen_message_ws(log: models.Logs.LogCienaWaveserver) -> str:
+def gen_message_ws(log: models.Logs.LogCienaWaveserver, src: str, redis: r.Redis) -> str:
     message = str()
     match log.EVENT_ID:
         case '39-003' | '39-006':
+            AffectedServices = redis.smembers(f'{vars.PROJECT_NAME}.mcp.devices.{src}.tpes.{log.RESOURCE.replace("/", "-")}.fres')
             message = (
-                f'<code>{log.RESOURCE.upper()}</code> <i>{log.ERROR}</i>.'
+                f'<code>{log.RESOURCE}</code> <i>{log.ERROR}</i>.' +
+                (f"\nAffected Services: {', '.join([html.escape(af) for af in AffectedServices])}" if AffectedServices else '')
                 )
         case _:
             message = log.MSG
     return message
 
 
-def gen_message(typeGroup: str, log: models.Logs.Log | models.Logs.LogCiena6500 | models.Logs.LogCienaWaveserver) -> str:
+def gen_message(typeGroup: str, log: models.Logs.Log | models.Logs.LogCiena6500 | models.Logs.LogCienaWaveserver, src: str, redis: r.Redis) -> str:
     message = str()
     match typeGroup:
         case 'Ciena6500':
             message = gen_message_shelf(log)
 
         case 'CienaWaveserver':
-            message = gen_message_ws(log)
+            message = gen_message_ws(log, src, redis)
 
     return message
 
@@ -145,7 +147,7 @@ def parse_log(msg: GELFMessage, redis: r.Redis) -> str:
         logModel = getattr(models.Logs, f'Log{typeGroup}', models.Logs.Log)
         log = logModel.model_validate(unformat(preprocessed_log, pattern))
         if log.processed:
-            msg_parsed = gen_message(typeGroup, log)
+            msg_parsed = gen_message(typeGroup, log, msg.source_, redis)
         else:
             raise MessageProcessingError(msg.full_message)
 
