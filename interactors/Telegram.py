@@ -1,10 +1,14 @@
+import html
+import logging as log
 import subprocess
-import vars
+import traceback
+
 import redis as r
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, filters
+
+import vars
 from models.Creds import Creds
-from utils.utils import escape_html_tags
 
 
 async def cmd_report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -57,6 +61,14 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(output, parse_mode='HTML', reply_to_message_id=update.message.message_id)
 
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    log.error("Exception while handling an update:", exc_info=context.error)
+
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    tb_string = "".join(tb_list)
+    log.error(tb_string)
+
+
 class TelegramBot:
     def __init__(self, credits: Creds):
         self.bot = credits.tg[vars.BOT_NAME]
@@ -79,6 +91,7 @@ class TelegramBot:
 
     def start(self) -> None:
         self.add_handlers()
+        self.application.add_error_handler(error_handler)
         self.application.run_polling(allowed_updates=Update.MESSAGE)
 
     def add_handlers(self):
@@ -97,7 +110,7 @@ class TelegramBot:
         filter_keywords = self.redis.smembers(f'{vars.PROJECT_NAME}.mgmt.filters')
         if filter_keywords:
             output = 'Keyword & [Reason]:\n\n'
-            output += '\n'.join(f"{i+1}. <code>{escape_html_tags(keyword)}</code>" for i, keyword in enumerate(filter_keywords))
+            output += '\n'.join(f"{i+1}. <code>{html.escape(keyword)}</code>" for i, keyword in enumerate(filter_keywords))
         else:
             output = 'Nothing is ignored in this chat'
 
@@ -108,7 +121,7 @@ class TelegramBot:
         if keyword:
             self.redis.sadd(f'{vars.PROJECT_NAME}.mgmt.filters', keyword)
 
-        output = f'Keyword "<code>{escape_html_tags(keyword)}</code>" is filtered.'
+        output = f'Keyword "<code>{html.escape(keyword)}</code>" is filtered.'
         await update.message.reply_text(output, parse_mode='HTML', reply_to_message_id=update.message.message_id)
 
     async def cmd_delete(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -116,7 +129,7 @@ class TelegramBot:
         if keyword:
             self.redis.srem(f'{vars.PROJECT_NAME}.mgmt.filters', keyword)
 
-        output = f'Keyword "<code>{escape_html_tags(keyword)}</code>" is removed.'
+        output = f'Keyword "<code>{html.escape(keyword)}</code>" is removed.'
         await update.message.reply_text(output, parse_mode='HTML', reply_to_message_id=update.message.message_id)
 
     async def cmd_stop(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

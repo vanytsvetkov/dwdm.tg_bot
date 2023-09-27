@@ -23,10 +23,6 @@ def load_creds() -> Creds:
     return credits
 
 
-def escape_html_tags(text: str) -> str:
-    return text.replace('<', '&lt;').replace('>', '&gt;')
-
-
 def get_df_from_gt(sheet_id: str, sheet_names: list) -> dict[str, pd.DataFrame]:
     """
     man: https://medium.com/geekculture/2-easy-ways-to-read-google-sheets-data-using-python-9e7ef366c775#c6bb

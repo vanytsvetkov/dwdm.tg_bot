@@ -1,5 +1,7 @@
+import html
+
 from pydantic import BaseModel, Field
-from utils.utils import escape_html_tags
+import html
 
 
 class Log(BaseModel):
@@ -13,7 +15,7 @@ class Log(BaseModel):
     def __init__(self, **data):
         for key, value in data.items():
             if isinstance(value, str):
-                data[key] = escape_html_tags(value)
+                data[key] = html.escape(value)
         super().__init__(**data)
 
 

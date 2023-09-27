@@ -1,3 +1,4 @@
+import html
 import json
 import logging
 import traceback
@@ -7,7 +8,7 @@ import redis as r
 import models.Logs
 import vars
 from models.GELFMessage import GELFMessage
-from utils.utils import escape_html_tags, get_event_id, get_log_level, get_log_prival, is_logType, unformat
+from utils.utils import get_event_id, get_log_level, get_log_prival, is_logType, unformat
 
 with open(f'{vars.BASE}/{vars.DATA_DIR}/{vars.PATTERNS_FILENAME}') as file:
     PATTERNS = json.load(file)
@@ -154,4 +155,4 @@ def parse_log(msg: GELFMessage, redis: r.Redis) -> str:
     except Exception:
         logging.debug(traceback.format_exc())
     finally:
-        return msg_parsed if msg_parsed else escape_html_tags(msg.short_message)
+        return msg_parsed if msg_parsed else html.escape(msg.short_message)
