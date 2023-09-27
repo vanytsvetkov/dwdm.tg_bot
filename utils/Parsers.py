@@ -105,9 +105,9 @@ def gen_message_shelf(log: models.Logs.LogCiena6500) -> str:
     match log.LEVEL:
         case 'ALM':
             message = (
-                    f'<em>{log.LEVEL}</em> [<b>{", ".join((log.SEVERITY, log.SERVICE_AFFECTED))}</b>]: '
-                    f'<em>{log.DESCRIPTION}</em> at unit <code>{log.RESOURCE}</code>.' +
-                    (f'\nAdditional Info: <em>{log.ADDITIONALINFO}</em>.' if log.ADDITIONALINFO else '')
+                    f'<i>{log.LEVEL}</i> [<b>{", ".join((log.SEVERITY, log.SERVICE_AFFECTED))}</b>]: '
+                    f'<i>{log.DESCRIPTION}</i> at unit <code>{log.RESOURCE}</code>.' +
+                    (f'\nAdditional Info: <i>{log.ADDITIONALINFO}</i>.' if log.ADDITIONALINFO else '')
                 )
     return message
 
@@ -117,7 +117,7 @@ def gen_message_ws(log: models.Logs.LogCienaWaveserver) -> str:
     match log.EVENT_ID:
         case '39-003' | '39-006':
             message = (
-                f'{log.RESOURCE.upper()} <i>{log.ERROR}</i>.'
+                f'<code>{log.RESOURCE.upper()}</code> <i>{log.ERROR}</i>.'
                 )
         case _:
             message = log.MSG
