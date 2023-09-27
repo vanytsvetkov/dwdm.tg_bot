@@ -1,15 +1,23 @@
 from pydantic import BaseModel, Field
+from utils.utils import escape_html_tags
 
 
 class Log(BaseModel):
-    processed: bool = False
-
-
-class LogCiena6500(Log):
     PRIVAL: str = str()
     VERSION: str = str()
     TIMESTAMP: str = str()
     SOURCE: str = str()
+
+    processed: bool = False
+
+    def __init__(self, **data):
+        for key, value in data.items():
+            if isinstance(value, str):
+                data[key] = escape_html_tags(value)
+        super().__init__(**data)
+
+
+class LogCiena6500(Log):
     LEVEL: str = str()
     SITE: str = str()
     SHELF: str = str()
@@ -51,8 +59,7 @@ class LogCiena6500(Log):
 
 
 class LogCienaWaveserver(Log):
-    TIMESTAMP: str = str()
-    SOURCE: str = str()
+    MAC: str = str()
     WS: str = str()
     PIM: str = str()
     EVENT_TYPE: str = str()
@@ -61,38 +68,17 @@ class LogCienaWaveserver(Log):
     EVENT_ID: str = str()
     EVENT_NAME: str = str()
     EVENT_ORIGIN: str = str()
-    MSG_: str = Field(str(), alias='MSG')
-    MAC: str = str()
-    CHASSIS: str = str()
-    IP: str = str()
-    USERNAME: str = str()
-    PORT: str = str()
-    ERTYPE: str = str()
-    STATE: str = str()
-    ERROR: str = str()
-    NUMBERS: str = str()
-    SEV: str = str()
-    TYPE: str = str()
     TAG: str = str()
-    USER: str = str()
-    ACTION: str = str()
-    NUMBERS: str = str()
-    STATE1: str = str()
-    STATE2: str = str()
-    STATE3: str = str()
-    CLIENT: str = str()
-    ADDR: str = str()
-    REASON: str = str()
-    DBCHGSEQ: str = str()
-    USERID: str = str()
-    PRIORITY: str = str()
-    ED_TELEMETRY: str = str()
-    LOSTHRES: str = str()
-    TELEPWR: str = str()
-    TELEMODE: str = str()
-    SIGNALPWR: str = str()
-    RXPWR: str = str()
-    SPANLOSS: str = str()
+    MSG_ID: str = str()
+    MSG_: str = Field(str(), alias='MSG')
+
+    RESOURCE: str = str()
+    SEV: str = str()
+    ERROR: str = str()
+
+    MONTH: str = str()
+    DAY: str = str()
+    TIME: str = str()
 
     @property
     def MSG(self):

@@ -1,12 +1,13 @@
 import json
 import logging
-import re
 import traceback
+
 import redis as r
+
 import models.Logs
 import vars
 from models.GELFMessage import GELFMessage
-from utils.utils import escape_html_tags, unformat
+from utils.utils import escape_html_tags, get_event_id, get_log_level, get_log_prival, is_logType, unformat
 
 with open(f'{vars.BASE}/{vars.DATA_DIR}/{vars.PATTERNS_FILENAME}') as file:
     PATTERNS = json.load(file)
@@ -17,71 +18,61 @@ class MessageProcessingError(BaseException):
         super().__init__(message)
 
 
-def is_logType(cond, text: str) -> bool:
-    match = re.match(fr'\W{cond}\W', text)
-    return bool(match)
-
-
-def get_log_level(text: str) -> str:
-    match = re.search(r'\b(?:ALM|SECU|DBCHG)\b', text)
-    return match.group() if match else str()
-
-
-def get_event_id(text: str) -> str:
-    match = re.search(r'EVENT-ID="(\d+-\d+)"', text)
-    return match.group(1) if match else str()
-
-
-def get_log_prival(text: str) -> str:
-    match = re.search(r'<(\d+)>', text)
-    return match.group(1) if match else str()
-
-
-def get_pattern_for_shelf(log: str) -> str:
+def get_pattern_shelf(typeGroup: str, log: str) -> str:
     global PATTERNS
 
     level = get_log_level(log)
     match level:
         case 'SECU':
-            pattern = PATTERNS.get('Ciena6500').get(level).get('COMMON')
+            pattern = PATTERNS.get(typeGroup).get(level).get('COMMON')
         case 'ALM':
             if is_logType('TRC_INPROGRESS', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('TRC_INPROGRESS')
+                pattern = PATTERNS.get(typeGroup).get(level).get('TRC_INPROGRESS')
             elif is_logType('OSRP_BLKD', log):
                 prival = get_log_prival(log)
-                pattern = PATTERNS.get('Ciena6500').get(level).get('OSRP_BLKD').get(prival, PATTERNS.get('Ciena6500').get('DEFAULT'))
+                pattern = PATTERNS.get(typeGroup).get(level).get('OSRP_BLKD').get(prival, PATTERNS.get(typeGroup).get('DEFAULT'))
             elif is_logType('OPTICAL_SF', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('OPTICAL_SF')
+                pattern = PATTERNS.get(typeGroup).get(level).get('OPTICAL_SF')
             elif is_logType('SIGNAL_DEGRADE_OCH', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('SIGNAL_DEGRADE_OCH')
+                pattern = PATTERNS.get(typeGroup).get(level).get('SIGNAL_DEGRADE_OCH')
             elif is_logType('PWR_REDUCED', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('PWR_REDUCED')
+                pattern = PATTERNS.get(typeGroup).get(level).get('PWR_REDUCED')
             elif is_logType('PWR', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('PWR')
+                pattern = PATTERNS.get(typeGroup).get(level).get('PWR')
             elif is_logType('LOCH', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('LOCH')
+                pattern = PATTERNS.get(typeGroup).get(level).get('LOCH')
             elif is_logType('SEC_INTRUDER', log):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('SEC_INTRUDER')
+                pattern = PATTERNS.get(typeGroup).get(level).get('SEC_INTRUDER')
             elif any(is_logType(cond, log) for cond in ["LASER_FREQ_OOR", "LOS_OTS", "OCI_ODU", "T_TSUM_OTS", "LOWOPTRLOSOUT_OTS", "STC_OTS"]):
-                pattern = PATTERNS.get('Ciena6500').get(level).get('COMMON')
+                pattern = PATTERNS.get(typeGroup).get(level).get('COMMON')
             else:
-                pattern = PATTERNS.get('Ciena6500').get('DEFAULT')
+                pattern = PATTERNS.get(typeGroup).get('DEFAULT')
 
         case 'DBCHG':
-            pattern = PATTERNS.get('Ciena6500').get(level).get('COMMON')
+            pattern = PATTERNS.get(typeGroup).get(level).get('COMMON')
 
         case _:
-            pattern = PATTERNS.get('Ciena6500').get('DEFAULT')
+            pattern = PATTERNS.get(typeGroup).get('DEFAULT')
 
     return pattern
 
 
-def get_pattern_for_ws(log: str) -> str:
+def get_pattern_ws(typeGroup: str, log: str) -> str:
     global PATTERNS
+    pattern = str()
     event_id = get_event_id(log)
-    match event_id:
-        case _:
-            pattern = PATTERNS.get('CienaWaveserver').get('DEFAULT')
+    if event_id is not str():
+        match event_id:
+            # case '24-001' | '39-003' | '39-006':
+            #     pattern = PATTERNS.get(typeGroup).get(event_id, None)
+            case _:
+                pattern = PATTERNS.get(typeGroup).get(event_id, str())
+    else:
+        if is_logType('TACACS-4-INTRUSION_DETECTION', log):
+            pattern = PATTERNS.get(typeGroup).get('TACACS-4-INTRUSION_DETECTION', str())
+
+    if pattern is str():
+        pattern = PATTERNS.get(typeGroup).get('DEFAULT')
 
     return pattern
 
@@ -90,38 +81,56 @@ def preprocess_log(log: GELFMessage, redis: r.Redis) -> tuple:
     typeGroup = redis.get(f'{vars.PROJECT_NAME}.mcp.devices.{log.source_}.typeGroup')
     if typeGroup is None:
         logging.info('typeGroup is undefined for message')
-        raise MessageProcessingError(msg.full_message)
+        raise MessageProcessingError(log.full_message)
 
     pattern = str()
     match typeGroup:
         case 'Ciena6500':
-            pattern = get_pattern_for_shelf(log.full_message)
+            pattern = get_pattern_shelf(typeGroup, log.full_message)
             log.full_message = log.full_message.replace(' -  ', '  ').replace('\\', '')
         case 'CienaWaveserver':
-            pattern = get_pattern_for_ws(log.full_message)
+            pattern = get_pattern_ws(typeGroup, log.full_message)
+            log.full_message = log.full_message.replace('   ', '  ')
 
     if pattern is str():
         logging.info('Pattern is undefined for message')
-        raise MessageProcessingError(msg.full_message)
+        raise MessageProcessingError(log.full_message)
 
     return typeGroup, pattern, log.full_message
+
+
+def gen_message_shelf(log: models.Logs.LogCiena6500) -> str:
+    message = str()
+    match log.LEVEL:
+        case 'ALM':
+            message = (
+                    f'<em>{log.LEVEL}</em> [<b>{", ".join((log.SEVERITY, log.SERVICE_AFFECTED))}</b>]: '
+                    f'<em>{log.DESCRIPTION}</em> at unit <code>{log.RESOURCE}</code>.' +
+                    (f'\nAdditional Info: <em>{log.ADDITIONALINFO}</em>.' if log.ADDITIONALINFO else '')
+                )
+    return message
+
+
+def gen_message_ws(log: models.Logs.LogCienaWaveserver) -> str:
+    message = str()
+    match log.EVENT_ID:
+        case '39-003' | '39-006':
+            message = (
+                f'{log.RESOURCE.upper()} <i>{log.ERROR}</i>.'
+                )
+        case _:
+            message = log.MSG
+    return message
 
 
 def gen_message(typeGroup: str, log: models.Logs.Log | models.Logs.LogCiena6500 | models.Logs.LogCienaWaveserver) -> str:
     message = str()
     match typeGroup:
         case 'Ciena6500':
-            match log.LEVEL:
-                case 'ALM':
-                    message = (
-                            f'<em>{log.LEVEL}</em> [<b>{", ".join((log.SEVERITY, log.SERVICE_AFFECTED))}</b>]: '
-                            f'<em>{log.DESCRIPTION}</em> at unit <code>{log.RESOURCE}</code>.' +
-                            (f'\nAdditional Info: <em>{log.ADDITIONALINFO}</em>.' if log.ADDITIONALINFO else '')
-                        )
+            message = gen_message_shelf(log)
+
         case 'CienaWaveserver':
-            match log.EVENT_ID:
-                case _:
-                    message = log.MSG
+            message = gen_message_ws(log)
 
     return message
 

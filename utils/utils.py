@@ -74,3 +74,23 @@ def unformat(string: str, pattern: str, i: int = 0) -> dict:
         return unformat(string, new_pattern, i+1)
     else:
         return {'processed': False}
+
+
+def is_logType(cond, text: str) -> bool:
+    match = re.search(fr'\W({cond})\W', text)
+    return bool(match)
+
+
+def get_log_level(text: str) -> str:
+    match = re.search(r'\b(?:ALM|SECU|DBCHG)\b', text)
+    return match.group() if match else str()
+
+
+def get_event_id(text: str) -> str:
+    match = re.search(r'EVENT-ID[=:]"?(\d+-\d+)"?', text)
+    return match.group(1) if match else str()
+
+
+def get_log_prival(text: str) -> str:
+    match = re.search(r'<(\d+)>', text)
+    return match.group(1) if match else str()
