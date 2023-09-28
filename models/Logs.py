@@ -61,6 +61,7 @@ class LogCiena6500(Log):
 
 
 class LogCienaWaveserver(Log):
+    INTRO: str = str()
     MAC: str = str()
     WS: str = str()
     PIM: str = str()
@@ -74,9 +75,8 @@ class LogCienaWaveserver(Log):
     MSG_ID: str = str()
     MSG_: str = Field(str(), alias='MSG')
 
-    RESOURCE: str = str()
+    RESOURCE_: str = Field(str(), alias='RESOURCE')
     SEV: str = str()
-    ERROR: str = str()
 
     MONTH: str = str()
     DAY: str = str()
@@ -85,3 +85,17 @@ class LogCienaWaveserver(Log):
     @property
     def MSG(self):
         return self.MSG_.strip()
+
+    @property
+    def RESOURCE(self) -> str:
+        if self.RESOURCE_.isdigit():
+            resource = f'{self.EVENT_ORIGIN} {self.RESOURCE_}'
+        else:
+            resource = self.RESOURCE_
+
+        return (
+            resource
+            .replace("/", "-")
+            .replace(' ', '-')
+            .lower()
+        )

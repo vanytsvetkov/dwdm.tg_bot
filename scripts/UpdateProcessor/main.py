@@ -59,10 +59,10 @@ if __name__ == "__main__":
 
             if (tpes := mcp.get_tpes(networkConstructId=device.id)).success:
                 for tpe in tpes.response.data:
-                    if tpe.attributes.nativeName:
+                    if tpe.attributes.additionalAttributes.alarmResourceId:
                         supported_fresName = set()
 
-                        # set userLabel, if available
+                        # get userLabel, if available
                         if tpe.attributes.additionalAttributes.userLabel:
                             supported_fresName.add(tpe.attributes.additionalAttributes.userLabel)
 
@@ -73,15 +73,17 @@ if __name__ == "__main__":
                                     if clientFre.attributes.userLabel:
                                         supported_fresName.add(clientFre.attributes.userLabel)
 
-                        # get all supported fres by tpe.id
+                        # get all supported fres by tpe.id (ex. Transport Clients for Photonic port or Clients for channels)
                         # if (fres := mcp.get_supported_fres(tpe.id)).success:
                         #     for fre in fres.response.data:
                         #         if fre.attributes.displayData.displayName:
                         #             supported_fresName.add(fre.attributes.userLabel)
 
                         if supported_fresName:
-                            redis.sadd(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{tpe.attributes.nativeName}.fres', *supported_fresName)
-                            redis.expire(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{tpe.attributes.nativeName}.fres', timedelta(days=7))
+                            for resource in tpe.attributes.additionalAttributes.alarmResourceId.split(','):
+                                redis.sadd(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{resource.lower()}.fres', *supported_fresName)
+                                redis.expire(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{resource.lower()}.fres', timedelta(days=7))
+
     redis.close()
 
     if REPORT_RECIPIENT:

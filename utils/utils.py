@@ -1,3 +1,4 @@
+import html
 import json
 import logging as log
 import os
@@ -6,6 +7,7 @@ import sys
 
 import gspread
 import pandas as pd
+import redis as r
 
 import vars
 from models.Creds import Creds
@@ -56,9 +58,18 @@ def prettify(name: str) -> str:
     return found.group(1) if found else None
 
 
+def unformat_custom_sub(match):
+    match (word := match.group(1)):
+        case 'RESOURCE':
+            return r'(?P<_RESOURCE>.*\d+)'
+        case _:
+            return fr'(?P<_{word}>.+)'
+
+
 def unformat(string: str, pattern: str, i: int = 0) -> dict:
     _pattern = re.sub(r'</?var\d*>', '', pattern)
-    regexp_pattern = re.sub(r'{(.+?)}', r'(?P<_\1>.+)', _pattern)
+    regexp_pattern = re.sub(r'{(.+?)}', unformat_custom_sub, _pattern)
+    # print(regexp_pattern)
     search = re.search(regexp_pattern, string)
     if search:
         values = list(search.groups())
@@ -87,6 +98,20 @@ def get_event_id(text: str) -> str:
     return match.group(1) if match else str()
 
 
+def get_event_name(text: str) -> str:
+    match = re.search(r'EVENT-NAME[=:]"?(\w+)"?', text)
+    return match.group(1) if match else str()
+
+
 def get_log_prival(text: str) -> str:
     match = re.search(r'<(\d+)>', text)
     return match.group(1) if match else str()
+
+
+def get_affected_services(device: str, tpe: str, redis: r.Redis) -> str:
+    fres = redis.smembers(f'{vars.PROJECT_NAME}.mcp.devices.{device}.tpes.{tpe}.fres')
+    if fres:
+        services = ', '.join(f'<code>{html.escape(fre)}</code>' for fre in fres)
+        return services
+
+    return str()

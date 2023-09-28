@@ -31,14 +31,14 @@ if __name__ == '__main__':
         'T-MAXEVRSH-OTS',
         'T-MAXEVLSH-OTS',
         'DNLD-6-TRANSFER_COMPLETE',
-        'SHELF'
+        # 'SHELF'
         ]
 
     output = open('output.log', 'w')
 
     i = 1
-    # while i < 6000:
-    while i < len(data)-1:
+    while i < 10000:
+    # while i < len(data)-1:
         msg = data[len(data)-i]
         msg['_source'] = msg['source']
         msg['short_message'] = msg['message']
@@ -47,11 +47,14 @@ if __name__ == '__main__':
         if not any(word in msg['full_message'] for word in filters):
 
             # if 'TACACS-4-INTRUSION_DETECTION' in msg['full_message']:
+            # if '62-046' in msg['full_message']:
+            # if 'CHANNEL-4-STATE_CHANGE' in msg['full_message']:
+            # if '172.27.252.138' in msg['full_message']:
 
             gelf_msg = GELFMessage(**msg)
             msg_parsed = parse_log(gelf_msg, redis)
 
-            # if msg_parsed != msg['message']:
+            # if '<code>' not in msg_parsed:
             output.write(f"{msg['full_message']}\n")
             output.write(f'{msg_parsed}\n\n')
 

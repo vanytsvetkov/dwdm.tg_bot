@@ -8,7 +8,7 @@ import redis as r
 import models.Logs
 import vars
 from models.GELFMessage import GELFMessage
-from utils.utils import get_event_id, get_log_level, get_log_prival, is_logType, unformat
+from utils.utils import get_affected_services, get_event_id, get_event_name, get_log_level, get_log_prival, is_logType, unformat
 
 with open(f'{vars.BASE}/{vars.DATA_DIR}/{vars.PATTERNS_FILENAME}') as file:
     PATTERNS = json.load(file)
@@ -61,19 +61,16 @@ def get_pattern_shelf(typeGroup: str, log: str) -> str:
 def get_pattern_ws(typeGroup: str, log: str) -> str:
     global PATTERNS
     pattern = str()
-    event_id = get_event_id(log)
-    if event_id is not str():
-        match event_id:
-            # case '24-001' | '39-003' | '39-006':
-            #     pattern = PATTERNS.get(typeGroup).get(event_id, None)
-            case _:
-                pattern = PATTERNS.get(typeGroup).get(event_id, str())
+
+    if (event_name := get_event_name(log)) is not str():
+        pattern = PATTERNS.get(typeGroup).get(event_name, str())
+    # elif (event_id := get_event_id(log)) is not str():
+    #     pattern = PATTERNS.get(typeGroup).get(event_id, str())
     else:
-        if is_logType('TACACS-4-INTRUSION_DETECTION', log):
-            pattern = PATTERNS.get(typeGroup).get('TACACS-4-INTRUSION_DETECTION', str())
+        pattern = PATTERNS.get(typeGroup).get('DEFAULT_Ai', str())
 
     if pattern is str():
-        pattern = PATTERNS.get(typeGroup).get('DEFAULT')
+        pattern = PATTERNS.get(typeGroup).get('DEFAULT_5')
 
     return pattern
 
@@ -114,15 +111,13 @@ def gen_message_shelf(log: models.Logs.LogCiena6500) -> str:
 
 def gen_message_ws(log: models.Logs.LogCienaWaveserver, src: str, redis: r.Redis) -> str:
     message = str()
-    match log.EVENT_ID:
-        case '39-003' | '39-006':
-            AffectedServices = redis.smembers(f'{vars.PROJECT_NAME}.mcp.devices.{src}.tpes.{log.RESOURCE.replace("/", "-")}.fres')
-            message = (
-                f'<code>{log.RESOURCE}</code> <i>{log.ERROR}</i>.' +
-                (f"\nAffected Services: {', '.join([html.escape(af) for af in AffectedServices])}" if AffectedServices else '')
-                )
-        case _:
-            message = log.MSG
+    if log.RESOURCE:
+        message = (
+            f'<code>{log.RESOURCE_}</code> <i>{log.MSG}</i>.' +
+            (f"\nAffected Services: {services}" if (services := get_affected_services(src, log.RESOURCE, redis)) else '')
+            )
+    else:
+        message = log.MSG
     return message
 
 
