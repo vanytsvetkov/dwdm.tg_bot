@@ -1,4 +1,5 @@
 import html
+import string
 
 from pydantic import BaseModel, Field
 import html
@@ -11,10 +12,11 @@ class Log(BaseModel):
     SOURCE: str = str()
 
     processed: bool = False
+    regexp_pattern: str = str()
 
     def __init__(self, **data):
         for key, value in data.items():
-            if isinstance(value, str):
+            if isinstance(value, str) and key != 'regexp_pattern':
                 data[key] = html.escape(value)
         super().__init__(**data)
 
@@ -76,7 +78,10 @@ class LogCienaWaveserver(Log):
     MSG_: str = Field(str(), alias='MSG')
 
     RESOURCE_: str = Field(str(), alias='RESOURCE')
-    SEV: str = str()
+    RESO: str = str()
+    URCE: str = str()
+
+    SEVERITY: str = str()
 
     MONTH: str = str()
     DAY: str = str()
@@ -88,10 +93,14 @@ class LogCienaWaveserver(Log):
 
     @property
     def RESOURCE(self) -> str:
-        if self.RESOURCE_.isdigit():
-            resource = f'{self.EVENT_ORIGIN} {self.RESOURCE_}'
-        else:
-            resource = self.RESOURCE_
+        resource = str()
+        if self.RESOURCE_:
+            if self.RESOURCE_.isdigit():
+                resource = f'{self.EVENT_ORIGIN} {self.RESOURCE_}'
+            else:
+                resource = self.RESOURCE_
+        elif self.RESO and self.URCE:
+            resource = f'{self.RESO}-{self.URCE}'
 
         return (
             resource

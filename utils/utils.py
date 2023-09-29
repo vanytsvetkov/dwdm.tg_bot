@@ -60,8 +60,10 @@ def prettify(name: str) -> str:
 
 def unformat_custom_sub(match):
     match (word := match.group(1)):
-        case 'RESOURCE':
-            return r'(?P<_RESOURCE>.*\d+)'
+        case 'RESOURCE' | 'RESO' | 'URCE':
+            return fr'(?P<_{word}>[-\/.A-Za-z0-9_]*)'
+        case 'MSG':
+            return fr'(?P<_{word}>.+:*?)'
         case _:
             return fr'(?P<_{word}>.+)'
 
@@ -69,18 +71,17 @@ def unformat_custom_sub(match):
 def unformat(string: str, pattern: str, i: int = 0) -> dict:
     _pattern = re.sub(r'</?var\d*>', '', pattern)
     regexp_pattern = re.sub(r'{(.+?)}', unformat_custom_sub, _pattern)
-    # print(regexp_pattern)
     search = re.search(regexp_pattern, string)
     if search:
         values = list(search.groups())
         keys = re.findall(r"{(.+?)}", _pattern)
         _dict = dict(zip(keys, values))
-        return _dict | {'processed': bool(_dict)}
+        return _dict | {'processed': bool(_dict), 'regexp_pattern': regexp_pattern}
     elif not search and re.search(r'</?var\d*>', pattern):
         new_pattern = re.sub(fr"<var{i if i else ''}>.+?</var{i if i else ''}>", "", pattern)
         return unformat(string, new_pattern, i+1)
     else:
-        return {'processed': False}
+        return {'processed': False , 'regexp_pattern': regexp_pattern}
 
 
 def is_logType(cond, text: str) -> bool:
@@ -111,7 +112,7 @@ def get_log_prival(text: str) -> str:
 def get_affected_services(device: str, tpe: str, redis: r.Redis) -> str:
     fres = redis.smembers(f'{vars.PROJECT_NAME}.mcp.devices.{device}.tpes.{tpe}.fres')
     if fres:
-        services = ', '.join(f'<code>{html.escape(fre)}</code>' for fre in fres)
+        services = ', '.join(f'<code>{html.escape(fre)}</code>' for fre in sorted(fres))
         return services
 
     return str()

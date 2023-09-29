@@ -30,15 +30,18 @@ if __name__ == '__main__':
         'T-CUMEVLSH-OTS',
         'T-MAXEVRSH-OTS',
         'T-MAXEVLSH-OTS',
+        'T-MAXEVRLG-OTS',
         'DNLD-6-TRANSFER_COMPLETE',
+        'fe80::',
+        'BKUPI',
         # 'SHELF'
         ]
 
     output = open('output.log', 'w')
 
     i = 1
-    while i < 10000:
-    # while i < len(data)-1:
+    # while i < 10000:
+    while i < len(data)-1:
         msg = data[len(data)-i]
         msg['_source'] = msg['source']
         msg['short_message'] = msg['message']
@@ -50,7 +53,7 @@ if __name__ == '__main__':
             # if '62-046' in msg['full_message']:
             # if 'CHANNEL-4-STATE_CHANGE' in msg['full_message']:
             # if '172.27.252.138' in msg['full_message']:
-
+            # if '172.27.255.171' in msg['full_message']:
             gelf_msg = GELFMessage(**msg)
             msg_parsed = parse_log(gelf_msg, redis)
 

@@ -1,6 +1,7 @@
 import html
 import json
 import logging
+import re
 import traceback
 
 import redis as r
@@ -60,10 +61,13 @@ def get_pattern_shelf(typeGroup: str, log: str) -> str:
 
 def get_pattern_ws(typeGroup: str, log: str) -> str:
     global PATTERNS
-    pattern = str()
 
     if (event_name := get_event_name(log)) is not str():
-        pattern = PATTERNS.get(typeGroup).get(event_name, str())
+        match event_name:
+            case 'PtpAppliedConfigChange':
+                pattern = PATTERNS.get(typeGroup).get('StateChange', str())
+            case _:
+                pattern = PATTERNS.get(typeGroup).get(event_name, str())
     # elif (event_id := get_event_id(log)) is not str():
     #     pattern = PATTERNS.get(typeGroup).get(event_id, str())
     else:
@@ -77,6 +81,7 @@ def get_pattern_ws(typeGroup: str, log: str) -> str:
 
 def preprocess_log(log: GELFMessage, redis: r.Redis) -> tuple:
     typeGroup = redis.get(f'{vars.PROJECT_NAME}.mcp.devices.{log.source_}.typeGroup')
+    logging.critical(f'{typeGroup}, {log.source_}')
     if typeGroup is None:
         logging.info('typeGroup is undefined for message')
         raise MessageProcessingError(log.full_message)
@@ -89,6 +94,7 @@ def preprocess_log(log: GELFMessage, redis: r.Redis) -> tuple:
         case 'CienaWaveserver':
             pattern = get_pattern_ws(typeGroup, log.full_message)
             log.full_message = log.full_message.replace('   ', '  ')
+            log.full_message = re.sub(r'\([-/.A-Za-z0-9_]*\s[-/.A-Za-z0-9_]*\)', lambda match: match.group(0).replace(' ', '-'), log.full_message)
 
     if pattern is str():
         logging.info('Pattern is undefined for message')
@@ -110,14 +116,15 @@ def gen_message_shelf(log: models.Logs.LogCiena6500) -> str:
 
 
 def gen_message_ws(log: models.Logs.LogCienaWaveserver, src: str, redis: r.Redis) -> str:
-    message = str()
     if log.RESOURCE:
         message = (
-            f'<code>{log.RESOURCE_}</code> <i>{log.MSG}</i>.' +
+            f'<i>{log.MSG}</i> at unit <code>{log.RESOURCE}</code>.' +
             (f"\nAffected Services: {services}" if (services := get_affected_services(src, log.RESOURCE, redis)) else '')
             )
     else:
-        message = log.MSG
+        message = (
+            f'<i>{log.MSG}</i>'
+            )
     return message
 
 
@@ -144,6 +151,9 @@ def parse_log(msg: GELFMessage, redis: r.Redis) -> str:
         if log.processed:
             msg_parsed = gen_message(typeGroup, log, msg.source_, redis)
         else:
+            print(preprocessed_log)
+            print(pattern)
+            print(log)
             raise MessageProcessingError(msg.full_message)
 
     except MessageProcessingError as e:

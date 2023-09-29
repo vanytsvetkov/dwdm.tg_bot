@@ -62,7 +62,7 @@ if __name__ == "__main__":
                     if tpe.attributes.additionalAttributes.alarmResourceId:
                         supported_fresName = set()
 
-                        # get userLabel, if available
+                        # get direct userLabel, if available
                         if tpe.attributes.additionalAttributes.userLabel:
                             supported_fresName.add(tpe.attributes.additionalAttributes.userLabel)
 
@@ -73,14 +73,16 @@ if __name__ == "__main__":
                                     if clientFre.attributes.userLabel:
                                         supported_fresName.add(clientFre.attributes.userLabel)
 
-                        # get all supported fres by tpe.id (ex. Transport Clients for Photonic port or Clients for channels)
+                        # get all supported fres by tpe.id
+                        # ex. Transport Clients for Photonic port or Clients for channels
                         # if (fres := mcp.get_supported_fres(tpe.id)).success:
                         #     for fre in fres.response.data:
-                        #         if fre.attributes.displayData.displayName:
+                        #         if fre.attributes.userLabel:
                         #             supported_fresName.add(fre.attributes.userLabel)
 
                         if supported_fresName:
                             for resource in tpe.attributes.additionalAttributes.alarmResourceId.split(','):
+                                redis.delete(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{resource.lower()}.fres')
                                 redis.sadd(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{resource.lower()}.fres', *supported_fresName)
                                 redis.expire(f'{vars.PROJECT_NAME}.mcp.devices.{device.attributes.ipAddress}.tpes.{resource.lower()}.fres', timedelta(days=7))
 
