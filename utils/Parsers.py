@@ -81,7 +81,6 @@ def get_pattern_ws(typeGroup: str, log: str) -> str:
 
 def preprocess_log(log: GELFMessage, redis: r.Redis) -> tuple:
     typeGroup = redis.get(f'{vars.PROJECT_NAME}.mcp.devices.{log.source_}.typeGroup')
-    logging.critical(f'{typeGroup}, {log.source_}')
     if typeGroup is None:
         logging.info('typeGroup is undefined for message')
         raise MessageProcessingError(log.full_message)
@@ -151,9 +150,6 @@ def parse_log(msg: GELFMessage, redis: r.Redis) -> str:
         if log.processed:
             msg_parsed = gen_message(typeGroup, log, msg.source_, redis)
         else:
-            print(preprocessed_log)
-            print(pattern)
-            print(log)
             raise MessageProcessingError(msg.full_message)
 
     except MessageProcessingError as e:

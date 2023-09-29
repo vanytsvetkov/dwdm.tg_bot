@@ -40,8 +40,8 @@ if __name__ == '__main__':
     output = open('output.log', 'w')
 
     i = 1
-    # while i < 10000:
-    while i < len(data)-1:
+    while i < 10000:
+    # while i < len(data)-1:
         msg = data[len(data)-i]
         msg['_source'] = msg['source']
         msg['short_message'] = msg['message']
